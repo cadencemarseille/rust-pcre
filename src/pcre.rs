@@ -177,7 +177,7 @@ impl Pcre {
     }
 
     fn compile_with_options(pattern: &str, options: options) -> Pcre {
-        pattern.with_c_str(|pattern_c_str| {
+        do pattern.with_c_str |pattern_c_str| {
             // Use the default character tables.
             let tableptr: *c_uchar = null();
             let code = detail::pcre_compile(pattern_c_str, options, tableptr);
@@ -193,7 +193,7 @@ impl Pcre {
                 extra: extra,
                 capture_count: capture_count as uint
             }
-        })
+        }
     }
 
     fn exec<'a>(&self, subject: &'a str) -> Option<Match<'a>> {
@@ -209,7 +209,7 @@ impl Pcre {
         let mut ovector: ~[c_int] = from_elem(ovecsize, 0 as c_int);
 
         unsafe {
-            subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
+            do subject.with_c_str_unchecked |subject_c_str| -> Option<Match<'a>> {
                 if detail::pcre_exec(self.code, self.extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, to_mut_ptr(ovector), ovecsize as c_int) {
                     Some(Match {
                         subject: subject,
@@ -221,7 +221,7 @@ impl Pcre {
                 } else {
                     None
                 }
-            })
+            }
         }
     }
 }
