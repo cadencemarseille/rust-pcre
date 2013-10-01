@@ -10,10 +10,9 @@
 #[crate_type = "lib"];
 
 use std::libc::{c_int, c_uchar, c_void};
-use std::option::{None, Option, Some};
-use std::ptr::{is_not_null, null};
-use std::vec::{from_elem};
-use std::vec::raw::{to_mut_ptr};
+use std::option::{Option};
+use std::ptr;
+use std::vec;
 
 pub type options = c_int;
 
@@ -61,7 +60,7 @@ mod detail {
 
     use std::c_str::*;
     use std::libc::*;
-    use std::ptr::*;
+    use std::ptr;
 
     pub type fullinfo_field = c_int;
     pub type pcre = c_void;
@@ -92,12 +91,12 @@ mod detail {
     #[fixed_stack_segment]
     #[inline(never)]
     pub fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uchar) -> *pcre {
-        assert!(is_not_null(pattern));
-        let mut err: *c_char = null();
+        assert!(ptr::is_not_null(pattern));
+        let mut err: *c_char = ptr::null();
         let mut erroffset: c_int = 0;
         let code = unsafe { native::pcre_compile(pattern, options, &mut err, &mut erroffset, tableptr) };
 
-        if is_null(code) {
+        if ptr::is_null(code) {
             // "Otherwise, if  compilation  of  a  pattern fails, pcre_compile() returns
             // NULL, and sets the variable pointed to by errptr to point to a textual
             // error message. This is a static string that is part of the library. You
@@ -109,7 +108,7 @@ mod detail {
             }
             fail!("pcre_compile");
         }
-        assert!(is_not_null(code) && erroffset == 0);
+        assert!(ptr::is_not_null(code) && erroffset == 0);
 
         code
     }
@@ -117,7 +116,7 @@ mod detail {
     #[fixed_stack_segment]
     #[inline(never)]
     pub fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: ::options, ovector: *mut c_int, ovecsize: c_int) -> bool {
-        assert!(is_not_null(code));
+        assert!(ptr::is_not_null(code));
         assert!(ovecsize >= 0 && ovecsize % 3 == 0);
         let rc = unsafe { native::pcre_exec(code, extra, subject, length, startoffset, options, ovector, ovecsize) };
         if rc == PCRE_ERROR_NOMATCH {
@@ -144,7 +143,7 @@ mod detail {
     #[fixed_stack_segment]
     #[inline(never)]
     pub fn pcre_fullinfo(code: *pcre, extra: *pcre_extra, what: fullinfo_field, where: *mut c_void) {
-        assert!(is_not_null(code));
+        assert!(ptr::is_not_null(code));
         let rc = unsafe { native::pcre_fullinfo(code, extra, what, where) };
         if rc < 0 && rc != PCRE_ERROR_NULL {
             fail!("pcre_fullinfo");
@@ -179,11 +178,11 @@ impl Pcre {
     fn compile_with_options(pattern: &str, options: options) -> Pcre {
         do pattern.with_c_str |pattern_c_str| {
             // Use the default character tables.
-            let tableptr: *c_uchar = null();
+            let tableptr: *c_uchar = ptr::null();
             let code = detail::pcre_compile(pattern_c_str, options, tableptr);
-            assert!(is_not_null(code));
+            assert!(ptr::is_not_null(code));
 
-            let extra: *detail::pcre_extra = null();
+            let extra: *detail::pcre_extra = ptr::null();
 
             let mut capture_count: c_int = 0;
             detail::pcre_fullinfo(code, extra, detail::PCRE_INFO_CAPTURECOUNT, &mut capture_count as *mut c_int as *mut c_void);
@@ -206,11 +205,11 @@ impl Pcre {
 
     fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: options) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count + 1) * 3;
-        let mut ovector: ~[c_int] = from_elem(ovecsize, 0 as c_int);
+        let mut ovector: ~[c_int] = vec::from_elem(ovecsize, 0 as c_int);
 
         unsafe {
             do subject.with_c_str_unchecked |subject_c_str| -> Option<Match<'a>> {
-                if detail::pcre_exec(self.code, self.extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, to_mut_ptr(ovector), ovecsize as c_int) {
+                if detail::pcre_exec(self.code, self.extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, vec::raw::to_mut_ptr(ovector), ovecsize as c_int) {
                     Some(Match {
                         subject: subject,
                         // TODO: Is it possible to avoid to_owned()?
@@ -229,9 +228,9 @@ impl Pcre {
 impl Drop for Pcre {
     fn drop(&mut self) {
         detail::pcre_free_study(self.extra);
-        self.extra = null();
+        self.extra = ptr::null();
         detail::pcre_free(self.code);
-        self.code = null();
+        self.code = ptr::null();
     }
 }
 
