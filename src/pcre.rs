@@ -228,10 +228,8 @@ impl Pcre {
 
 impl Drop for Pcre {
     fn drop(&mut self) {
-        if is_not_null(self.extra) {
-            detail::pcre_free_study(self.extra);
-            self.extra = null();
-        }
+        detail::pcre_free_study(self.extra);
+        self.extra = null();
         detail::pcre_free(self.code);
         self.code = null();
     }
