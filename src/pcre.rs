@@ -102,9 +102,10 @@ mod detail {
             // error message. This is a static string that is part of the library. You
             // must not try to free it."
             // http://pcre.org/pcre.txt
-            unsafe {
-                let err_cstring = CString::new(err, false);
-                error!("pcre_compile() failed at offset %u: %s", erroffset as uint, err_cstring.as_str().unwrap());
+            let err_cstring = unsafe { CString::new(err, false) };
+            match err_cstring.as_str() {
+                None          => error!("pcre_compile() failed at offset %u", erroffset as uint),
+                Some(err_str) => error!("pcre_compile() failed at offset %u: %s", erroffset as uint, err_str)
             }
             fail!("pcre_compile");
         }
