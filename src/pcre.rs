@@ -109,7 +109,8 @@ mod detail {
             }
             fail!("pcre_compile");
         }
-        assert!(ptr::is_not_null(code) && erroffset == 0);
+        assert!(ptr::is_not_null(code));
+        assert_eq!(erroffset, 0);
 
         code
     }
