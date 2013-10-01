@@ -160,7 +160,7 @@ pub struct Pcre {
 
     priv extra: *detail::pcre_extra,
 
-    capture_count: uint
+    priv capture_count_: uint
 
 }
 
@@ -192,9 +192,13 @@ impl Pcre {
             Pcre {
                 code: code,
                 extra: extra,
-                capture_count: capture_count as uint
+                capture_count_: capture_count as uint
             }
         }
+    }
+
+    fn capture_count(&self) -> uint {
+        self.capture_count_
     }
 
     fn exec<'a>(&self, subject: &'a str) -> Option<Match<'a>> {
@@ -206,7 +210,7 @@ impl Pcre {
     }
 
     fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: options) -> Option<Match<'a>> {
-        let ovecsize = (self.capture_count + 1) * 3;
+        let ovecsize = (self.capture_count_ + 1) * 3;
         let mut ovector: ~[c_int] = vec::from_elem(ovecsize, 0 as c_int);
 
         unsafe {
@@ -217,7 +221,7 @@ impl Pcre {
                         // TODO: Is it possible to avoid to_owned()?
                         // Probably need multiple lifetime parameters:
                         // https://mail.mozilla.org/pipermail/rust-dev/2013-September/005829.html
-                        ovector: ovector.slice_to((self.capture_count + 1) * 2).to_owned()
+                        ovector: ovector.slice_to((self.capture_count_ + 1) * 2).to_owned()
                     })
                 } else {
                     None
@@ -279,13 +283,13 @@ mod tests {
     #[test]
     fn test_compile_capture_count() {
         let re = ::Pcre::compile("(?:abc)(def)");
-        assert_eq!(re.capture_count, 1u);
+        assert_eq!(re.capture_count(), 1u);
     }
 
     #[test]
     fn test_exec_basic() {
         let re = ::Pcre::compile("^...$");
-        assert_eq!(re.capture_count, 0u);
+        assert_eq!(re.capture_count(), 0u);
         let m = re.exec("abc").unwrap();
         assert_eq!(m.group(0), "abc");
     }
