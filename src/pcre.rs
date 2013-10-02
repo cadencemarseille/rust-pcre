@@ -69,9 +69,9 @@ mod detail {
     use std::ptr;
 
     pub type fullinfo_field = c_int;
-    pub type pcre = c_void;
+    pub struct pcre;
     pub type pcre_error = c_int;
-    pub type pcre_extra = c_void;
+    pub struct pcre_extra;
 
     pub static PCRE_ERROR_NOMATCH: pcre_error = -1;
     pub static PCRE_ERROR_NULL: pcre_error = -2;
@@ -280,7 +280,7 @@ impl Drop for Pcre {
     fn drop(&mut self) {
         detail::pcre_free_study(self.extra);
         self.extra = ptr::null();
-        detail::pcre_free(self.code);
+        detail::pcre_free(self.code as *c_void);
         self.code = ptr::null();
     }
 }
