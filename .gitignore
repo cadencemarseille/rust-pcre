@@ -1,4 +1,12 @@
 *.dSYM
 *.dylib
 .DS_Store
-pcretest~
+aclocal.m4
+autom4te.cache
+config.log
+configure
+
+/.rust
+/build
+/lib
+/libtest~
