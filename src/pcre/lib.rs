@@ -189,7 +189,7 @@ impl<'self> Match<'self> {
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
 
     #[test]
     #[should_fail]
