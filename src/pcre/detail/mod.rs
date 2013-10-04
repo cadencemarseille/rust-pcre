@@ -109,3 +109,10 @@ pub fn pcre_study(code: *::detail::pcre, options: ::study_options) -> *::detail:
 
     extra
 }
+
+#[fixed_stack_segment]
+#[inline(never)]
+pub fn pcre_version() -> ~str {
+    let version_cstring = unsafe { CString::new(native::pcre_version(), false) };
+    version_cstring.as_str().unwrap().to_owned()
+}

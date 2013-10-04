@@ -188,6 +188,10 @@ impl<'self> Match<'self> {
 
 }
 
+pub fn pcre_version() -> ~str {
+    detail::pcre_version()
+}
+
 #[cfg(test)]
 mod test {
 

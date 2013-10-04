@@ -17,4 +17,5 @@ extern {
     fn pcre_free_study(extra: *::detail::pcre_extra);
     fn pcre_fullinfo(code: *::detail::pcre, extra: *::detail::pcre_extra, what: ::detail::fullinfo_field, where: *mut c_void) -> c_int;
     fn pcre_study(code: *::detail::pcre, options: ::study_options, errptr: *mut *c_char) -> *::detail::pcre_extra;
+    fn pcre_version() -> *c_char;
 }
