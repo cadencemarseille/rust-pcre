@@ -83,11 +83,11 @@ pub struct Match<'self> {
 }
 
 impl Pcre {
-    fn compile(pattern: &str) -> Pcre {
+    pub fn compile(pattern: &str) -> Pcre {
         Pcre::compile_with_options(pattern, 0)
     }
 
-    fn compile_with_options(pattern: &str, options: options) -> Pcre {
+    pub fn compile_with_options(pattern: &str, options: options) -> Pcre {
         do pattern.with_c_str |pattern_c_str| {
             // Use the default character tables.
             let tableptr: *c_uchar = ptr::null();
@@ -107,19 +107,19 @@ impl Pcre {
         }
     }
 
-    fn capture_count(&self) -> uint {
+    pub fn capture_count(&self) -> uint {
         self.capture_count_
     }
 
-    fn exec<'a>(&self, subject: &'a str) -> Option<Match<'a>> {
+    pub fn exec<'a>(&self, subject: &'a str) -> Option<Match<'a>> {
         self.exec_from(subject, 0)
     }
 
-    fn exec_from<'a>(&self, subject: &'a str, startoffset: uint) -> Option<Match<'a>> {
+    pub fn exec_from<'a>(&self, subject: &'a str, startoffset: uint) -> Option<Match<'a>> {
         self.exec_from_with_options(subject, startoffset, 0)
     }
 
-    fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: options) -> Option<Match<'a>> {
+    pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: options) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
         let mut ovector: ~[c_int] = vec::from_elem(ovecsize, 0 as c_int);
 
@@ -140,11 +140,11 @@ impl Pcre {
         }
     }
 
-    fn study(&mut self) -> bool {
+    pub fn study(&mut self) -> bool {
         self.study_with_options(0)
     }
 
-    fn study_with_options(&mut self, options: study_options) -> bool {
+    pub fn study_with_options(&mut self, options: study_options) -> bool {
         // Free any current study data.
         detail::pcre_free_study(self.extra);
         self.extra = ptr::null();
@@ -166,20 +166,20 @@ impl Drop for Pcre {
 
 impl<'self> Match<'self> {
 
-    fn group_start(&self, n: uint) -> uint {
+    pub fn group_start(&self, n: uint) -> uint {
         self.ovector[(n * 2) as uint] as uint
     }
 
-    fn group_end(&self, n: uint) -> uint {
+    pub fn group_end(&self, n: uint) -> uint {
         self.ovector[(n * 2 + 1) as uint] as uint
     }
 
-    fn group_len(&self, n: uint) -> uint {
+    pub fn group_len(&self, n: uint) -> uint {
         let group_offsets = self.ovector.slice_from((n * 2) as uint);
         (group_offsets[1] - group_offsets[0]) as uint
     }
 
-    fn group(&self, n: uint) -> &'self str {
+    pub fn group(&self, n: uint) -> &'self str {
         let group_offsets = self.ovector.slice_from((n * 2) as uint);
         let start = group_offsets[0];
         let end = group_offsets[1];
