@@ -3,6 +3,13 @@
 
 ## Quick Start
 
+### General setup
+If you have not done so already, you need to set up your rustpkg path:
+
+    test ! -d ~/.rust && mkdir ~/.rust
+    cd ~/.rust
+    rustpkg init
+
 ### Mac OS X
 
 Mac OS 10.7 ships with version 8.02 of libpcre, so you'll need to install a newer version of the pcre library.
@@ -15,9 +22,9 @@ To upgrade:
 
     brew update && brew upgrade rust pcre
 
-With Rust and libpcre 8.20+ installed, the library is compiled with:
+With Rust and libpcre 8.20+ installed:
 
-    rustc src/pcre.rs
+    make install
 
 ## Development
 
@@ -25,4 +32,4 @@ Patches and GitHub pull requests (PRs) are always welcome.
 
 To run the tests:
 
-    rust test src/pcre.rs
+    make test
