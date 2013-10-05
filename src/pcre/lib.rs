@@ -9,7 +9,9 @@
 #[link(name = "pcre", vers = "0.1")];
 #[crate_type = "lib"];
 
-use std::libc::{c_int, c_uchar, c_void};
+use std::c_str;
+use std::hashmap::{HashMap};
+use std::libc::{c_char, c_int, c_uchar, c_void};
 use std::option::{Option};
 use std::ptr;
 use std::vec;
@@ -78,7 +80,9 @@ pub struct Match<'self> {
 
     priv subject: &'self str,
 
-    priv ovector: ~[c_int]
+    priv ovector: ~[c_int],
+
+    priv string_count_: uint
 
 }
 
@@ -125,19 +129,54 @@ impl Pcre {
 
         unsafe {
             do subject.with_c_str_unchecked |subject_c_str| -> Option<Match<'a>> {
-                if detail::pcre_exec(self.code, self.extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, vec::raw::to_mut_ptr(ovector), ovecsize as c_int) {
+                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, vec::raw::to_mut_ptr(ovector), ovecsize as c_int);
+                if rc >= 0 {
                     Some(Match {
                         subject: subject,
                         // TODO: Is it possible to avoid to_owned()?
                         // Probably need multiple lifetime parameters:
                         // https://mail.mozilla.org/pipermail/rust-dev/2013-September/005829.html
-                        ovector: ovector.slice_to((self.capture_count_ + 1) * 2).to_owned()
+                        ovector: ovector.slice_to((self.capture_count_ + 1) * 2).to_owned(),
+                        string_count_: rc as uint
                     })
                 } else {
                     None
                 }
             }
         }
+    }
+
+    pub fn name_count(&self) -> uint {
+        let mut name_count: c_int = 0;
+        detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
+        name_count as uint
+    }
+
+    pub fn name_table(&self) -> HashMap<~str, ~[uint]> {
+        let name_count = self.name_count();
+        let mut tabptr: *c_uchar = ptr::null();
+        detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *c_uchar as *mut c_void);
+        let mut name_entry_size: c_int = 0;
+        detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
+
+        let mut name_table: HashMap<~str, ~[uint]> = HashMap::with_capacity(name_count);
+
+        let mut i = 0u;
+        unsafe {
+            while i < name_count {
+                let n: uint = (ptr::read_ptr(tabptr as *mut c_uchar) as uint << 8) | (ptr::read_ptr(ptr::offset(tabptr, 1) as *mut c_uchar) as uint);
+                let name_cstring = c_str::CString::new(ptr::offset(tabptr, 2) as *c_char, false);
+                let name: ~str = name_cstring.as_str().unwrap().to_owned();
+                let mut n_vec = name_table.find_or_insert_with(name, |_| -> ~[uint] {
+                    ~[]
+                });
+                n_vec.push(n);
+                tabptr = ptr::offset(tabptr, name_entry_size as int);
+                i += 1;
+            }
+        }
+
+        name_table
     }
 
     pub fn study(&mut self) -> bool {
@@ -186,6 +225,9 @@ impl<'self> Match<'self> {
         self.subject.slice(start as uint, end as uint)
     }
 
+    pub fn string_count(&self) -> uint {
+        self.string_count_
+    }
 }
 
 pub fn pcre_version() -> ~str {
