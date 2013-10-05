@@ -7,6 +7,7 @@ config.log
 configure
 
 /.rust
+/bin
 /build
 /lib
 /libtest~
