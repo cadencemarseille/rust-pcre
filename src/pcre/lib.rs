@@ -167,7 +167,7 @@ impl Pcre {
                 let n: uint = (ptr::read_ptr(tabptr as *mut c_uchar) as uint << 8) | (ptr::read_ptr(ptr::offset(tabptr, 1) as *mut c_uchar) as uint);
                 let name_cstring = c_str::CString::new(ptr::offset(tabptr, 2) as *c_char, false);
                 let name: ~str = name_cstring.as_str().unwrap().to_owned();
-                let mut n_vec = name_table.find_or_insert_with(name, |_| -> ~[uint] {
+                let n_vec = name_table.find_or_insert_with(name, |_| -> ~[uint] {
                     ~[]
                 });
                 n_vec.push(n);
