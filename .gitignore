@@ -11,3 +11,4 @@ configure
 /build
 /lib
 /libtest~
+/src/pcre/detail/native.rs

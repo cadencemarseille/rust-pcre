@@ -8,7 +8,7 @@
 
 use std::libc::*;
 
-#[link_args = "-lpcre.1"]
+#[link_args = "@PCRE_LIBS@"]
 extern {
     static pcre_free: extern "C" fn(ptr: *c_void);
 

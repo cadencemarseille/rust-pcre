@@ -63,10 +63,9 @@ pub fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uchar) ->
         // http://pcre.org/pcre.txt
         let err_cstring = unsafe { CString::new(err, false) };
         match err_cstring.as_str() {
-            None          => error!("pcre_compile() failed at offset %u", erroffset as uint),
-            Some(err_str) => error!("pcre_compile() failed at offset %u: %s", erroffset as uint, err_str)
+            None          => fail2!("pcre_compile() failed at offset {}", erroffset as uint),
+            Some(err_str) => fail2!("pcre_compile() failed at offset {}: {}", erroffset as uint, err_str)
         }
-        fail!("pcre_compile");
     }
     assert!(ptr::is_not_null(code));
     assert_eq!(erroffset, 0);
