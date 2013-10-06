@@ -19,6 +19,7 @@ use std::option::{Option};
 use std::os;
 use std::run;
 use std::str;
+use std::util;
 use std::vec;
 
 struct Version {
@@ -66,22 +67,9 @@ fn cd(path: &Path) {
     }
 }
 
-fn main() {
-    let args = os::args();
-    let args_len = args.len();
-
-    if args_len < 2 {
-        fail!("Package script requires a directory where rustc libraries live as the first argument");
-    } else if args_len < 3 {
-        fail!("Package script requires a command as the second argument");
-    }
-
+fn do_install(args: ~[~str]) {
     let sysroot_arg = args[1].clone();
     let sysroot_path = Path(sysroot_arg);
-
-    if args[2] != ~"install" {
-        fail2!("Package script error: Unsupported command `{}`", args[2]);
-    }
 
     let pcre_libs = match os::getenv("PCRE_LIBS") {
         None            => {
@@ -247,4 +235,27 @@ fn main () {
     }
 
     api::build_lib(sysroot_path, workspace_path, ~"pcre", rustpkg::version::ExactRevision(~"0.1"), Path("mod.rs"));
+}
+
+fn do_configs(args: ~[~str]) {
+    util::ignore(args);
+}
+
+fn main() {
+    let args = os::args();
+    let args_len = args.len();
+
+    if args_len < 2 {
+        fail!("Package script requires a directory where rustc libraries live as the first argument");
+    } else if args_len < 3 {
+        fail!("Package script requires a command as the second argument");
+    }
+
+    if args[2] == ~"install" {
+        do_install(args);
+    } else if args[2] == ~"configs" {
+        do_configs(args);
+    } else {
+        fail2!("Package script error: Unsupported command `{}`", args[2]);
+    }
 }
