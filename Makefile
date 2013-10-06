@@ -7,4 +7,4 @@ install:
 	rustpkg install pcre
 
 test:
-	rust test src/pcre/lib.rs
+	rustc --test src/pcre/test.rs -o libtest~ && ./libtest~
