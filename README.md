@@ -10,6 +10,19 @@ If you have not done so already, you need to set up your rustpkg path:
     cd ~/.rust
     rustpkg init
 
+### Debian
+
+Debian Squeeze's package for libpcre is for version 8.02 of the library, which is too old. If running Debian Squeeze, you will have to compile libpcre 8.20+ from source. (Tip: [GNU Stow](http://www.gnu.org/software/stow/) is an excellent tool for maintaining the `/usr/local` directory.)
+
+On Debian Wheezy and newer, install the `libpcre3-dev` package:
+
+    sudo apt-get install libpcre3-dev
+
+
+### Fedora
+
+Install the `pcre-devel` package.
+
 ### Mac OS X
 
 Mac OS 10.7 ships with version 8.02 of libpcre, so you'll need to install a newer version of the pcre library.
@@ -25,6 +38,13 @@ To upgrade:
 With Rust and libpcre 8.20+ installed:
 
     make install
+
+### Ubuntu
+The libpcre packages for Ubuntu 10.04 LTS 'Lucid Lynx' and Ubuntu 12.04 LTS 'Precise Pangolin' are too old. If running lucid or precise, you will have to compile libpcre 8.20+ from source. (Tip: [GNU Stow](http://www.gnu.org/software/stow/) is an excellent tool for maintaining the `/usr/local` directory.)
+
+On Ubuntu 12.10 'Quantal Quetzal' and newer, install the `libpcre3-dev` package:
+
+    sudo apt-get install libpcre3-dev
 
 ## Development
 
