@@ -12,8 +12,8 @@ extern mod extra;
 extern mod pcre;
 
 use extra::getopts::*;
+use extra::treemap::{TreeMap};
 use pcre::*;
-use std::hashmap::{HashMap};
 use std::os;
 
 fn print_usage(program: &str, opts: &[Opt]) {
@@ -28,7 +28,7 @@ fn print_version_info() {
     println!("rust-pcre 0.1 compiled against libpcre {}", pcre_version());
 }
 
-fn print_match(m: &Match, name_table: &HashMap<~str, ~[uint]>) {
+fn print_match(m: &Match, name_table: &TreeMap<~str, ~[uint]>) {
     println(fmt!("Match succeeded at offset %u", m.group_start(0u)));
 
     // Show captured substrings by number.

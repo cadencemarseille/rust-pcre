@@ -9,8 +9,10 @@
 #[link(name = "pcre", vers = "0.1")];
 #[crate_type = "lib"];
 
+extern mod extra;
+
+use extra::treemap::{TreeMap};
 use std::c_str;
-use std::hashmap::{HashMap};
 use std::libc::{c_char, c_int, c_uchar, c_void};
 use std::option::{Option};
 use std::ptr;
@@ -152,14 +154,14 @@ impl Pcre {
         name_count as uint
     }
 
-    pub fn name_table(&self) -> HashMap<~str, ~[uint]> {
+    pub fn name_table(&self) -> TreeMap<~str, ~[uint]> {
         let name_count = self.name_count();
         let mut tabptr: *c_uchar = ptr::null();
         detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *c_uchar as *mut c_void);
         let mut name_entry_size: c_int = 0;
         detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
 
-        let mut name_table: HashMap<~str, ~[uint]> = HashMap::with_capacity(name_count);
+        let mut name_table: TreeMap<~str, ~[uint]> = TreeMap::new();
 
         let mut i = 0u;
         unsafe {
@@ -167,10 +169,13 @@ impl Pcre {
                 let n: uint = (ptr::read_ptr(tabptr as *mut c_uchar) as uint << 8) | (ptr::read_ptr(ptr::offset(tabptr, 1) as *mut c_uchar) as uint);
                 let name_cstring = c_str::CString::new(ptr::offset(tabptr, 2) as *c_char, false);
                 let name: ~str = name_cstring.as_str().unwrap().to_owned();
-                let n_vec = name_table.find_or_insert_with(name, |_| -> ~[uint] {
-                    ~[]
-                });
-                n_vec.push(n);
+                // TODO Avoid the double lookup.
+                // https://github.com/mozilla/rust/issues/9068
+                if !name_table.contains_key(&name) {
+                    name_table.insert(name, ~[n]);
+                } else {
+                    name_table.find_mut(&name).unwrap().push(n);
+                }
                 tabptr = ptr::offset(tabptr, name_entry_size as int);
                 i += 1;
             }
