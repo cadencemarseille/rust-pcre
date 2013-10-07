@@ -18,10 +18,12 @@ On Debian Wheezy and newer, install the `libpcre3-dev` package:
 
     sudo apt-get install libpcre3-dev
 
+Then `make install`.
+
 
 ### Fedora
 
-Install the `pcre-devel` package.
+Install the `pcre-devel` package. Then `make install`.
 
 ### Mac OS X
 
@@ -45,6 +47,27 @@ The libpcre packages for Ubuntu 10.04 LTS 'Lucid Lynx' and Ubuntu 12.04 LTS 'Pre
 On Ubuntu 12.10 'Quantal Quetzal' and newer, install the `libpcre3-dev` package:
 
     sudo apt-get install libpcre3-dev
+
+Then `make install`.
+
+## Usage
+The basic use of the library involves compiling a pattern regular expression:
+
+    let re = Pcre::compile(pattern);
+
+You can also pass options:
+
+    let re = Pcre::compile_with_options(pattern, PCRE_CASELESS);
+
+To test against a subject string, use one of the exec, exec_from, or exec_from_with_options methods. For example:
+
+    let opt_m = re.exec(subject);
+    let m = match opt_m {
+            None => { println("No match"); return; },
+            Some(m) => m
+        };
+
+See the [`pcredemo` source](https://github.com/cadencemarseille/rust-pcre/blob/master/src/pcredemo/main.rs) for a complete example.
 
 ## Development
 
