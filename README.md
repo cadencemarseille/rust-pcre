@@ -59,15 +59,15 @@ You can also pass options:
 
     let re = Pcre::compile_with_options(pattern, PCRE_CASELESS);
 
-To test against a subject string, use one of the exec, exec_from, or exec_from_with_options methods. For example:
+To test against a subject string, use one of the exec(), exec_from(), or exec_from_with_options() methods. For example:
 
     let opt_m = re.exec(subject);
     let m = match opt_m {
-            None => { println("No match"); return; },
-            Some(m) => m
-        };
+        None => { println("No match"); return; },
+        Some(m) => m
+    };
 
-See the [`pcredemo` source](https://github.com/cadencemarseille/rust-pcre/blob/master/src/pcredemo/main.rs) for a complete example.
+See the [source of `pcredemo`](https://github.com/cadencemarseille/rust-pcre/blob/master/src/pcredemo/main.rs) for a complete example.
 
 ## Development
 
