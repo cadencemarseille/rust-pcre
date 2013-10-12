@@ -91,7 +91,7 @@ pub fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_in
 #[fixed_stack_segment]
 #[inline(never)]
 pub fn pcre_free(ptr: *mut c_void) {
-    native::pcre_free(ptr);
+    unsafe { native::pcre_free(ptr); }
 }
 
 #[fixed_stack_segment]

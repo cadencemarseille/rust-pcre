@@ -10,7 +10,7 @@ use std::libc::*;
 
 #[link_args = "@PCRE_LIBS@"]
 extern {
-    static pcre_free: extern "C" fn(ptr: *mut c_void);
+    static pcre_free: extern "C" unsafe fn(ptr: *mut c_void);
 
     fn pcre_compile(pattern: *c_char, options: ::options, errptr: *mut *c_char, erroffset: *mut c_int, tableptr: *c_uchar) -> *mut ::detail::pcre;
     fn pcre_exec(code: *::detail::pcre, extra: *::detail::pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: ::options, ovector: *mut c_int, ovecsize: c_int) -> c_int;
