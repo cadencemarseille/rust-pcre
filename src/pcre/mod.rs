@@ -135,9 +135,6 @@ impl Pcre {
                 if rc >= 0 {
                     Some(Match {
                         subject: subject,
-                        // TODO: Is it possible to avoid to_owned()?
-                        // Probably need multiple lifetime parameters:
-                        // https://mail.mozilla.org/pipermail/rust-dev/2013-September/005829.html
                         ovector: ovector.slice_to((self.capture_count_ + 1) * 2).to_owned(),
                         string_count_: rc as uint
                     })
