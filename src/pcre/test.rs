@@ -67,3 +67,42 @@ fn test_study_basic() {
     study_res = re.study();
     assert!(study_res);
 }
+
+#[test]
+fn test_match_iter_basic() {
+    let subject = "\0abc1111abcabc___ababc+a";
+    let mut it = {
+        let re = Pcre::compile("abc");
+        re.match_iter(subject)
+    };
+
+    let mut opt_m = it.next();
+    assert!(opt_m.is_some());
+    let mut m = opt_m.unwrap();
+    assert_eq!(m.group_start(0u), 1u);
+    assert_eq!(m.group_end(0u), 4u);
+
+    let opt_m2 = it.next();
+    assert!(opt_m2.is_some());
+    let m2 = opt_m2.unwrap();
+    assert_eq!(m2.group_start(0u), 8u);
+    assert_eq!(m2.group_end(0u), 11u);
+    // Verify that getting the next match has not changed the first match data.
+    assert_eq!(m.group_start(0u), 1u);
+    assert_eq!(m.group_end(0u), 4u);
+
+    opt_m = it.next();
+    assert!(opt_m.is_some());
+    m = opt_m.unwrap();
+    assert_eq!(m.group_start(0u), 11u);
+    assert_eq!(m.group_end(0u), 14u);
+
+    opt_m = it.next();
+    assert!(opt_m.is_some());
+    m = opt_m.unwrap();
+    assert_eq!(m.group_start(0u), 19u);
+    assert_eq!(m.group_end(0u), 22u);
+
+    opt_m = it.next();
+    assert!(opt_m.is_none());
+}

@@ -49,7 +49,7 @@ mod native;
 
 #[fixed_stack_segment]
 #[inline(never)]
-pub fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uchar) -> *pcre {
+pub fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uchar) -> *mut pcre {
     assert!(ptr::is_not_null(pattern));
     let mut err: *c_char = ptr::null();
     let mut erroffset: c_int = 0;
@@ -90,13 +90,13 @@ pub fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_in
 
 #[fixed_stack_segment]
 #[inline(never)]
-pub fn pcre_free(ptr: *c_void) {
+pub fn pcre_free(ptr: *mut c_void) {
     native::pcre_free(ptr);
 }
 
 #[fixed_stack_segment]
 #[inline(never)]
-pub fn pcre_free_study(extra: *pcre_extra) {
+pub fn pcre_free_study(extra: *mut pcre_extra) {
     unsafe { native::pcre_free_study(extra); }
 }
 
@@ -112,7 +112,22 @@ pub fn pcre_fullinfo(code: *pcre, extra: *pcre_extra, what: fullinfo_field, wher
 
 #[fixed_stack_segment]
 #[inline(never)]
-pub fn pcre_study(code: *::detail::pcre, options: ::study_options) -> *::detail::pcre_extra {
+pub fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
+    assert!(ptr::is_not_null(code));
+    unsafe {
+        let curr_refcount = native::pcre_refcount(code, 0);
+        if curr_refcount + adjust < 0 {
+            fail!("refcount underflow");
+        } else if curr_refcount + adjust > 65535 {
+            fail!("refcount overflow");
+        }
+        native::pcre_refcount(code, adjust)
+    }
+}
+
+#[fixed_stack_segment]
+#[inline(never)]
+pub fn pcre_study(code: *::detail::pcre, options: ::study_options) -> *mut ::detail::pcre_extra {
     assert!(ptr::is_not_null(code));
     let mut err: *c_char = ptr::null();
     let extra = unsafe { native::pcre_study(code, options, &mut err) };

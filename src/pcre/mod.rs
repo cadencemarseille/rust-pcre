@@ -82,9 +82,27 @@ pub struct Match<'self> {
 
     priv subject: &'self str,
 
-    priv ovector: ~[c_int],
+    priv partial_ovector: ~[c_int],
 
     priv string_count_: c_int
+
+}
+
+pub struct MatchIterator<'self> {
+
+    priv code: *detail::pcre,
+
+    priv extra: *detail::pcre_extra,
+
+    priv capture_count: c_int,
+
+    priv subject: &'self str,
+
+    priv offset: c_int,
+
+    priv options: options,
+
+    priv ovector: ~[c_int]
 
 }
 
@@ -97,8 +115,10 @@ impl Pcre {
         do pattern.with_c_str |pattern_c_str| {
             // Use the default character tables.
             let tableptr: *c_uchar = ptr::null();
-            let code = detail::pcre_compile(pattern_c_str, options, tableptr);
+            let code = detail::pcre_compile(pattern_c_str, options, tableptr) as *detail::pcre;
             assert!(ptr::is_not_null(code));
+            // Take a reference.
+            detail::pcre_refcount(code as *mut detail::pcre, 1);
 
             let extra: *detail::pcre_extra = ptr::null();
 
@@ -135,13 +155,30 @@ impl Pcre {
                 if rc >= 0 {
                     Some(Match {
                         subject: subject,
-                        ovector: ovector.slice_to(((self.capture_count_ + 1) * 2) as uint).to_owned(),
+                        partial_ovector: ovector.slice_to(((self.capture_count_ + 1) * 2) as uint).to_owned(),
                         string_count_: rc
                     })
                 } else {
                     None
                 }
             }
+        }
+    }
+
+    pub fn match_iter<'a>(&self, subject: &'a str) -> MatchIterator<'a> {
+        self.match_iter_with_options(subject, 0)
+    }
+
+    pub fn match_iter_with_options<'a>(&self, subject: &'a str, options: options) -> MatchIterator<'a> {
+        let ovecsize = (self.capture_count_ + 1) * 3;
+        MatchIterator {
+            code: { detail::pcre_refcount(self.code as *mut detail::pcre, 1); self.code },
+            extra: self.extra,
+            capture_count: self.capture_count_,
+            subject: subject,
+            offset: 0,
+            options: options,
+            ovector: vec::from_elem(ovecsize as uint, 0 as c_int)
         }
     }
 
@@ -186,42 +223,50 @@ impl Pcre {
     }
 
     pub fn study_with_options(&mut self, options: study_options) -> bool {
-        // Free any current study data.
-        detail::pcre_free_study(self.extra);
-        self.extra = ptr::null();
+        // If something else has a reference to `code` then it probably has a pointer to
+        // the current study data (if any). Thus, we shouldn't free the current study data
+        // in that case.
+        if detail::pcre_refcount(self.code as *mut detail::pcre, 0) != 1 {
+            false
+        } else {
+            // Free any current study data.
+            detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
+            self.extra = ptr::null();
 
-        let extra = detail::pcre_study(self.code, options);
-        self.extra = extra;
-        ptr::is_not_null(extra)
+            let extra = detail::pcre_study(self.code, options) as *detail::pcre_extra;
+            self.extra = extra;
+            ptr::is_not_null(extra)
+        }
     }
 }
 
 impl Drop for Pcre {
     fn drop(&mut self) {
-        detail::pcre_free_study(self.extra);
+        if detail::pcre_refcount(self.code as *mut detail::pcre, -1) == 0 {
+            detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
+            detail::pcre_free(self.code as *mut detail::pcre as *mut c_void);
+        }
         self.extra = ptr::null();
-        detail::pcre_free(self.code as *c_void);
         self.code = ptr::null();
     }
 }
 
 impl<'self> Match<'self> {
-
     pub fn group_start(&self, n: uint) -> uint {
-        self.ovector[(n * 2) as uint] as uint
+        self.partial_ovector[(n * 2) as uint] as uint
     }
 
     pub fn group_end(&self, n: uint) -> uint {
-        self.ovector[(n * 2 + 1) as uint] as uint
+        self.partial_ovector[(n * 2 + 1) as uint] as uint
     }
 
     pub fn group_len(&self, n: uint) -> uint {
-        let group_offsets = self.ovector.slice_from((n * 2) as uint);
+        let group_offsets = self.partial_ovector.slice_from((n * 2) as uint);
         (group_offsets[1] - group_offsets[0]) as uint
     }
 
     pub fn group(&self, n: uint) -> &'self str {
-        let group_offsets = self.ovector.slice_from((n * 2) as uint);
+        let group_offsets = self.partial_ovector.slice_from((n * 2) as uint);
         let start = group_offsets[0];
         let end = group_offsets[1];
         self.subject.slice(start as uint, end as uint)
@@ -229,6 +274,40 @@ impl<'self> Match<'self> {
 
     pub fn string_count(&self) -> uint {
         self.string_count_ as uint
+    }
+}
+
+#[unsafe_destructor]
+impl<'self> Drop for MatchIterator<'self> {
+    fn drop(&mut self) {
+        if detail::pcre_refcount(self.code as *mut detail::pcre, -1) == 0 {
+            detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
+            detail::pcre_free(self.code as *mut detail::pcre as *mut c_void);
+        }
+        self.extra = ptr::null();
+        self.code = ptr::null();
+    }
+}
+
+impl<'self> Iterator<Match<'self>> for MatchIterator<'self> {
+    fn next(&mut self) -> Option<Match<'self>> {
+        unsafe {
+            do self.subject.with_c_str_unchecked |subject_c_str| -> Option<Match<'self>> {
+                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, self.options, vec::raw::to_mut_ptr(self.ovector), self.ovector.len() as c_int);
+                if rc >= 0 {
+                    // Update the iterator state.
+                    self.offset = self.ovector[1];
+
+                    Some(Match {
+                        subject: self.subject,
+                        partial_ovector: self.ovector.slice_to(((self.capture_count + 1) * 2) as uint).to_owned(),
+                        string_count_: rc
+                    })
+                } else {
+                    None
+                }
+            }
+        }
     }
 }
 
