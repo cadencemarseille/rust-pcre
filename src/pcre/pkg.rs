@@ -44,18 +44,6 @@ impl ToStr for Version {
 }
 
 impl Ord for Version {
-    fn ge(&self, other: &Version) -> bool {
-        !self.lt(other)
-    }
-
-    fn gt(&self, other: &Version) -> bool {
-        self.major > other.major || (self.major == other.major && self.minor > other.minor)
-    }
-
-    fn le(&self, other: &Version) -> bool {
-        !self.gt(other)
-    }
-
     fn lt(&self, other: &Version) -> bool {
         self.major < other.major || (self.major == other.major && self.minor < other.minor)
     }
