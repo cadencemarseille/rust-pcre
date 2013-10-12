@@ -74,7 +74,7 @@ pub struct Pcre {
 
     priv extra: *detail::pcre_extra,
 
-    priv capture_count_: uint
+    priv capture_count_: c_int
 
 }
 
@@ -84,7 +84,7 @@ pub struct Match<'self> {
 
     priv ovector: ~[c_int],
 
-    priv string_count_: uint
+    priv string_count_: c_int
 
 }
 
@@ -108,13 +108,13 @@ impl Pcre {
             Pcre {
                 code: code,
                 extra: extra,
-                capture_count_: capture_count as uint
+                capture_count_: capture_count
             }
         }
     }
 
     pub fn capture_count(&self) -> uint {
-        self.capture_count_
+        self.capture_count_ as uint
     }
 
     pub fn exec<'a>(&self, subject: &'a str) -> Option<Match<'a>> {
@@ -127,7 +127,7 @@ impl Pcre {
 
     pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: options) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
-        let mut ovector: ~[c_int] = vec::from_elem(ovecsize, 0 as c_int);
+        let mut ovector: ~[c_int] = vec::from_elem(ovecsize as uint, 0 as c_int);
 
         unsafe {
             do subject.with_c_str_unchecked |subject_c_str| -> Option<Match<'a>> {
@@ -135,8 +135,8 @@ impl Pcre {
                 if rc >= 0 {
                     Some(Match {
                         subject: subject,
-                        ovector: ovector.slice_to((self.capture_count_ + 1) * 2).to_owned(),
-                        string_count_: rc as uint
+                        ovector: ovector.slice_to(((self.capture_count_ + 1) * 2) as uint).to_owned(),
+                        string_count_: rc
                     })
                 } else {
                     None
@@ -228,7 +228,7 @@ impl<'self> Match<'self> {
     }
 
     pub fn string_count(&self) -> uint {
-        self.string_count_
+        self.string_count_ as uint
     }
 }
 
