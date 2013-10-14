@@ -113,22 +113,24 @@ impl Pcre {
 
     pub fn compile_with_options(pattern: &str, options: options) -> Pcre {
         do pattern.with_c_str |pattern_c_str| {
-            // Use the default character tables.
-            let tableptr: *c_uchar = ptr::null();
-            let code = detail::pcre_compile(pattern_c_str, options, tableptr) as *detail::pcre;
-            assert!(ptr::is_not_null(code));
-            // Take a reference.
-            detail::pcre_refcount(code as *mut detail::pcre, 1);
+            unsafe {
+                // Use the default character tables.
+                let tableptr: *c_uchar = ptr::null();
+                let code = detail::pcre_compile(pattern_c_str, options, tableptr) as *detail::pcre;
+                assert!(ptr::is_not_null(code));
+                // Take a reference.
+                detail::pcre_refcount(code as *mut detail::pcre, 1);
 
-            let extra: *detail::pcre_extra = ptr::null();
+                let extra: *detail::pcre_extra = ptr::null();
 
-            let mut capture_count: c_int = 0;
-            detail::pcre_fullinfo(code, extra, detail::PCRE_INFO_CAPTURECOUNT, &mut capture_count as *mut c_int as *mut c_void);
+                let mut capture_count: c_int = 0;
+                detail::pcre_fullinfo(code, extra, detail::PCRE_INFO_CAPTURECOUNT, &mut capture_count as *mut c_int as *mut c_void);
 
-            Pcre {
-                code: code,
-                extra: extra,
-                capture_count_: capture_count
+                Pcre {
+                    code: code,
+                    extra: extra,
+                    capture_count_: capture_count
+                }
             }
         }
     }
@@ -170,35 +172,39 @@ impl Pcre {
     }
 
     pub fn match_iter_with_options<'a>(&self, subject: &'a str, options: options) -> MatchIterator<'a> {
-        let ovecsize = (self.capture_count_ + 1) * 3;
-        MatchIterator {
-            code: { detail::pcre_refcount(self.code as *mut detail::pcre, 1); self.code },
-            extra: self.extra,
-            capture_count: self.capture_count_,
-            subject: subject,
-            offset: 0,
-            options: options,
-            ovector: vec::from_elem(ovecsize as uint, 0 as c_int)
+        unsafe {
+            let ovecsize = (self.capture_count_ + 1) * 3;
+            MatchIterator {
+                code: { detail::pcre_refcount(self.code as *mut detail::pcre, 1); self.code },
+                extra: self.extra,
+                capture_count: self.capture_count_,
+                subject: subject,
+                offset: 0,
+                options: options,
+                ovector: vec::from_elem(ovecsize as uint, 0 as c_int)
+            }
         }
     }
 
     pub fn name_count(&self) -> uint {
-        let mut name_count: c_int = 0;
-        detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
-        name_count as uint
+        unsafe {
+            let mut name_count: c_int = 0;
+            detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
+            name_count as uint
+        }
     }
 
     pub fn name_table(&self) -> TreeMap<~str, ~[uint]> {
-        let name_count = self.name_count();
-        let mut tabptr: *c_uchar = ptr::null();
-        detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *c_uchar as *mut c_void);
-        let mut name_entry_size: c_int = 0;
-        detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
-
-        let mut name_table: TreeMap<~str, ~[uint]> = TreeMap::new();
-
-        let mut i = 0u;
         unsafe {
+            let name_count = self.name_count();
+            let mut tabptr: *c_uchar = ptr::null();
+            detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *c_uchar as *mut c_void);
+            let mut name_entry_size: c_int = 0;
+            detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
+
+            let mut name_table: TreeMap<~str, ~[uint]> = TreeMap::new();
+
+            let mut i = 0u;
             while i < name_count {
                 let n: uint = (ptr::read_ptr(tabptr as *mut c_uchar) as uint << 8) | (ptr::read_ptr(ptr::offset(tabptr, 1) as *mut c_uchar) as uint);
                 let name_cstring = c_str::CString::new(ptr::offset(tabptr, 2) as *c_char, false);
@@ -213,9 +219,9 @@ impl Pcre {
                 tabptr = ptr::offset(tabptr, name_entry_size as int);
                 i += 1;
             }
-        }
 
-        name_table
+            name_table
+        }
     }
 
     pub fn study(&mut self) -> bool {
@@ -223,31 +229,35 @@ impl Pcre {
     }
 
     pub fn study_with_options(&mut self, options: study_options) -> bool {
-        // If something else has a reference to `code` then it probably has a pointer to
-        // the current study data (if any). Thus, we shouldn't free the current study data
-        // in that case.
-        if detail::pcre_refcount(self.code as *mut detail::pcre, 0) != 1 {
-            false
-        } else {
-            // Free any current study data.
-            detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
-            self.extra = ptr::null();
+        unsafe {
+            // If something else has a reference to `code` then it probably has a pointer to
+            // the current study data (if any). Thus, we shouldn't free the current study data
+            // in that case.
+            if detail::pcre_refcount(self.code as *mut detail::pcre, 0) != 1 {
+                false
+            } else {
+                // Free any current study data.
+                detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
+                self.extra = ptr::null();
 
-            let extra = detail::pcre_study(self.code, options) as *detail::pcre_extra;
-            self.extra = extra;
-            ptr::is_not_null(extra)
+                let extra = detail::pcre_study(self.code, options) as *detail::pcre_extra;
+                self.extra = extra;
+                ptr::is_not_null(extra)
+            }
         }
     }
 }
 
 impl Drop for Pcre {
     fn drop(&mut self) {
-        if detail::pcre_refcount(self.code as *mut detail::pcre, -1) == 0 {
-            detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
-            detail::pcre_free(self.code as *mut detail::pcre as *mut c_void);
+        unsafe {
+            if detail::pcre_refcount(self.code as *mut detail::pcre, -1) == 0 {
+                detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
+                detail::pcre_free(self.code as *mut detail::pcre as *mut c_void);
+            }
+            self.extra = ptr::null();
+            self.code = ptr::null();
         }
-        self.extra = ptr::null();
-        self.code = ptr::null();
     }
 }
 
@@ -280,12 +290,14 @@ impl<'self> Match<'self> {
 #[unsafe_destructor]
 impl<'self> Drop for MatchIterator<'self> {
     fn drop(&mut self) {
-        if detail::pcre_refcount(self.code as *mut detail::pcre, -1) == 0 {
-            detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
-            detail::pcre_free(self.code as *mut detail::pcre as *mut c_void);
+        unsafe {
+            if detail::pcre_refcount(self.code as *mut detail::pcre, -1) == 0 {
+                detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
+                detail::pcre_free(self.code as *mut detail::pcre as *mut c_void);
+            }
+            self.extra = ptr::null();
+            self.code = ptr::null();
         }
-        self.extra = ptr::null();
-        self.code = ptr::null();
     }
 }
 
