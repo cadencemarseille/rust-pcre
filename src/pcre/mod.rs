@@ -98,6 +98,10 @@ pub struct MatchIterator<'self> {
 
     priv subject: &'self str,
 
+    /// The subject string as a `CString`. In MatchIterator's next() method, this is re-used
+    /// each time so that only one C-string copy of the subject string needs to be allocated.
+    priv subject_cstring: c_str::CString,
+
     priv offset: c_int,
 
     priv options: options,
@@ -179,6 +183,7 @@ impl Pcre {
                 extra: self.extra,
                 capture_count: self.capture_count_,
                 subject: subject,
+                subject_cstring: subject.to_c_str_unchecked(),
                 offset: 0,
                 options: options,
                 ovector: vec::from_elem(ovecsize as uint, 0 as c_int)
@@ -304,7 +309,7 @@ impl<'self> Drop for MatchIterator<'self> {
 impl<'self> Iterator<Match<'self>> for MatchIterator<'self> {
     fn next(&mut self) -> Option<Match<'self>> {
         unsafe {
-            do self.subject.with_c_str_unchecked |subject_c_str| -> Option<Match<'self>> {
+            do self.subject_cstring.with_ref |subject_c_str| -> Option<Match<'self>> {
                 let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, self.options, vec::raw::to_mut_ptr(self.ovector), self.ovector.len() as c_int);
                 if rc >= 0 {
                     // Update the iterator state.
