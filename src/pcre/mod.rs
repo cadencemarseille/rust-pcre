@@ -68,6 +68,7 @@ pub static PCRE_STUDY_EXTRA_NEEDED: study_options = 0x0008;
 
 mod detail;
 
+/// Wrapper for libpcre's `pcre` object (representing a compiled regular expression).
 pub struct Pcre {
 
     priv code: *detail::pcre,
@@ -78,6 +79,7 @@ pub struct Pcre {
 
 }
 
+/// Represents a match of a subject string against a regular expression.
 pub struct Match<'self> {
 
     priv subject: &'self str,
@@ -88,6 +90,7 @@ pub struct Match<'self> {
 
 }
 
+/// Iterator type for iterating matches within a subject string.
 pub struct MatchIterator<'self> {
 
     priv code: *detail::pcre,
@@ -111,10 +114,20 @@ pub struct MatchIterator<'self> {
 }
 
 impl Pcre {
+    /// Compiles the given regular expression.
+    ///
+    /// # Argument
+    /// * `pattern` - The regular expression.
     pub fn compile(pattern: &str) -> Pcre {
         Pcre::compile_with_options(pattern, 0)
     }
 
+    /// Compiles a regular expression using the given bitwise-OR'd options `options`.
+    ///
+    /// # Arguments
+    /// * `pattern` - The regular expression.
+    /// * `options` - Bitwise-OR'd compilation options. See the libpcre manpages,
+    ///   `man 3 pcre_compile`, for more information.
     pub fn compile_with_options(pattern: &str, options: options) -> Pcre {
         do pattern.with_c_str |pattern_c_str| {
             unsafe {
@@ -139,18 +152,74 @@ impl Pcre {
         }
     }
 
+    /// Returns the number of capture groups in the regular expression, including one for
+    /// each named capture group.
+    ///
+    /// This count does not include "group 0", which is the full substring within a subject
+    /// string that matches the regular expression.
+    ///
+    /// # See also
+    /// * [name_count()](#fn.name_count) - Returns the number of named capture groups.
     pub fn capture_count(&self) -> uint {
         self.capture_count_ as uint
     }
 
+    /// Matches the compiled regular expression against a given subject string `subject`.
+    /// If no match is found, then `None` is returned. Otherwise, a `Match` object is returned
+    /// which provides access to the captured substrings as slices of the subject string.
+    ///
+    /// # Argument
+    /// * `subject` - The subject string.
+    ///
+    /// # Performance notes
+    /// This method is intended to be used to find individual matches. If multiple matches
+    /// are desired, then a `MatchIterator` should be used because it is more efficient.
+    ///
+    /// If a regular expression will be used often, it might be worth studying it to possibly
+    /// speed up matching. See the [study()](#fn.study) method.
     pub fn exec<'a>(&self, subject: &'a str) -> Option<Match<'a>> {
         self.exec_from(subject, 0)
     }
 
+    /// Matches the compiled regular expression against a given subject string `subject`
+    /// starting at offset `startoffset` within the subject string. If no match is found,
+    /// then `None` is returned. Otherwise, a `Match` object is returned which provides
+    /// access to the captured substrings as slices of the subject string.
+    ///
+    /// # Arguments
+    /// * `subject` - The subject string.
+    /// * `startoffset` - Starting offset within `subject` at which to begin looking for
+    ///   a match.
+    ///
+    /// # Performance notes
+    /// This method is intended to be used to find individual matches. If multiple matches
+    /// are desired, then a `MatchIterator` should be used because it is more efficient.
+    ///
+    /// If a regular expression will be used often, it might be worth studying it to possibly
+    /// speed up matching. See the [study()](#fn.study) method.
     pub fn exec_from<'a>(&self, subject: &'a str, startoffset: uint) -> Option<Match<'a>> {
         self.exec_from_with_options(subject, startoffset, 0)
     }
 
+    /// Matches the compiled regular expression against a given subject string `subject`
+    /// starting at offset `startoffset` within the subject string and using the given
+    /// bitwise-OR'd matching options `options`. If no match is found, then `None` is
+    /// returned. Otherwise, a `Match` object is returned which provides access to the
+    /// captured substrings as slices of the subject string.
+    ///
+    /// # Arguments
+    /// * `subject` - The subject string.
+    /// * `startoffset` - Starting offset within `subject` at which to begin looking for
+    ///   a match.
+    /// * `options` - Bitwise-OR'd matching options. See the libpcre manpages, `man 3 pcre_exec`,
+    ///   for more information.
+    ///
+    /// # Performance notes
+    /// This method is intended to be used to find individual matches. If multiple matches
+    /// are desired, then a `MatchIterator` should be used because it is more efficient.
+    ///
+    /// If a regular expression will be used often, it might be worth studying it to possibly
+    /// speed up matching. See the [study()](#fn.study) method.
     pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: options) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
         let mut ovector: ~[c_int] = vec::from_elem(ovecsize as uint, 0 as c_int);
@@ -171,10 +240,22 @@ impl Pcre {
         }
     }
 
+    /// Creates a `MatchIterator` for iterating through matches within the given subject
+    /// string `subject`.
+    ///
+    /// # Argument
+    /// * `subject` - The subject string.
     pub fn match_iter<'a>(&self, subject: &'a str) -> MatchIterator<'a> {
         self.match_iter_with_options(subject, 0)
     }
 
+    /// Creates a `MatchIterator` for iterating through matches within the given subject
+    /// string `subject` using the given bitwise-OR'd matching options `options`.
+    ///
+    /// # Arguments
+    /// * `subject` - The subject string.
+    /// * `options` - Bitwise-OR'd matching options. See the libpcre manpages, `man 3 pcre_exec`,
+    ///   for more information.
     pub fn match_iter_with_options<'a>(&self, subject: &'a str, options: options) -> MatchIterator<'a> {
         unsafe {
             let ovecsize = (self.capture_count_ + 1) * 3;
@@ -191,6 +272,7 @@ impl Pcre {
         }
     }
 
+    /// Returns the number of named capture groups in the regular expression.
     pub fn name_count(&self) -> uint {
         unsafe {
             let mut name_count: c_int = 0;
@@ -199,6 +281,12 @@ impl Pcre {
         }
     }
 
+    /// Creates a name-to-number translation table that maps the name of each named capture
+    /// group to the assigned group numbers.
+    ///
+    /// The value type of the returned `TreeMap` is a `uint` vector because there can be
+    /// more than one group number for a given name if the PCRE_DUPNAMES option is used
+    /// when compiling the regular expression.
     pub fn name_table(&self) -> TreeMap<~str, ~[uint]> {
         unsafe {
             let name_count = self.name_count();
@@ -229,10 +317,24 @@ impl Pcre {
         }
     }
 
+    /// Studies the regular expression to see if additional information can be extracted
+    /// which might speed up matching.
+    ///
+    /// # Return value
+    /// `true` if additional information could be extracted. `false` otherwise.
     pub fn study(&mut self) -> bool {
         self.study_with_options(0)
     }
 
+    /// Studies the regular expression using the given bitwise-OR'd study options `options`
+    /// to see if additional information can be extracted which might speed up matching.
+    ///
+    /// # Argument
+    /// * `options` - Bitwise OR'd study options. See the libpcre manpages, `man 3 pcre_study`,
+    ///   for more information.
+    ///
+    /// # Return value
+    /// `true` if additional information could be extracted. `false` otherwise.
     pub fn study_with_options(&mut self, options: study_options) -> bool {
         unsafe {
             // If something else has a reference to `code` then it probably has a pointer to
@@ -267,19 +369,23 @@ impl Drop for Pcre {
 }
 
 impl<'self> Match<'self> {
+    /// Returns the start index within the subject string of capture group `n`.
     pub fn group_start(&self, n: uint) -> uint {
         self.partial_ovector[(n * 2) as uint] as uint
     }
 
+    /// Returns the end index within the subject string of capture group `n`.
     pub fn group_end(&self, n: uint) -> uint {
         self.partial_ovector[(n * 2 + 1) as uint] as uint
     }
 
+    /// Returns the length of the substring for capture group `n`.
     pub fn group_len(&self, n: uint) -> uint {
         let group_offsets = self.partial_ovector.slice_from((n * 2) as uint);
         (group_offsets[1] - group_offsets[0]) as uint
     }
 
+    /// Returns the substring for capture group `n` as a slice.
     pub fn group(&self, n: uint) -> &'self str {
         let group_offsets = self.partial_ovector.slice_from((n * 2) as uint);
         let start = group_offsets[0];
@@ -287,6 +393,7 @@ impl<'self> Match<'self> {
         self.subject.slice(start as uint, end as uint)
     }
 
+    /// Returns the number of substrings captured.
     pub fn string_count(&self) -> uint {
         self.string_count_ as uint
     }
@@ -307,6 +414,7 @@ impl<'self> Drop for MatchIterator<'self> {
 }
 
 impl<'self> Iterator<Match<'self>> for MatchIterator<'self> {
+    /// Gets the next match.
     fn next(&mut self) -> Option<Match<'self>> {
         unsafe {
             do self.subject_cstring.with_ref |subject_c_str| -> Option<Match<'self>> {
@@ -328,6 +436,7 @@ impl<'self> Iterator<Match<'self>> for MatchIterator<'self> {
     }
 }
 
+/// Returns libpcre version information.
 pub fn pcre_version() -> ~str {
     detail::pcre_version()
 }

@@ -1,4 +1,4 @@
-.PHONY: lib install test
+.PHONY: lib install test doc
 
 lib:
 	rustpkg build pcre
@@ -8,3 +8,6 @@ install:
 
 test:
 	rustc --test src/pcre/test.rs -o libtest~ && ./libtest~
+
+doc:
+	rustdoc --output doc html src/pcre/mod.rs

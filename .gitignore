@@ -9,6 +9,7 @@ configure
 /.rust
 /bin
 /build
+/doc
 /lib
 /libtest~
 /src/pcre/detail/native.rs
