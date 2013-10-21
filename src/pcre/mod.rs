@@ -177,6 +177,7 @@ impl Pcre {
     ///
     /// If a regular expression will be used often, it might be worth studying it to possibly
     /// speed up matching. See the [study()](#fn.study) method.
+    #[inline]
     pub fn exec<'a>(&self, subject: &'a str) -> Option<Match<'a>> {
         self.exec_from(subject, 0)
     }
@@ -197,6 +198,7 @@ impl Pcre {
     ///
     /// If a regular expression will be used often, it might be worth studying it to possibly
     /// speed up matching. See the [study()](#fn.study) method.
+    #[inline]
     pub fn exec_from<'a>(&self, subject: &'a str, startoffset: uint) -> Option<Match<'a>> {
         self.exec_from_with_options(subject, startoffset, 0)
     }
@@ -220,6 +222,7 @@ impl Pcre {
     ///
     /// If a regular expression will be used often, it might be worth studying it to possibly
     /// speed up matching. See the [study()](#fn.study) method.
+    #[inline]
     pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: options) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
         let mut ovector: ~[c_int] = vec::from_elem(ovecsize as uint, 0 as c_int);
@@ -245,6 +248,7 @@ impl Pcre {
     ///
     /// # Argument
     /// * `subject` - The subject string.
+    #[inline]
     pub fn match_iter<'a>(&self, subject: &'a str) -> MatchIterator<'a> {
         self.match_iter_with_options(subject, 0)
     }
@@ -256,6 +260,7 @@ impl Pcre {
     /// * `subject` - The subject string.
     /// * `options` - Bitwise-OR'd matching options. See the libpcre manpages, `man 3 pcre_exec`,
     ///   for more information.
+    #[inline]
     pub fn match_iter_with_options<'a>(&self, subject: &'a str, options: options) -> MatchIterator<'a> {
         unsafe {
             let ovecsize = (self.capture_count_ + 1) * 3;
@@ -386,6 +391,7 @@ impl<'self> Match<'self> {
     }
 
     /// Returns the substring for capture group `n` as a slice.
+    #[inline]
     pub fn group(&self, n: uint) -> &'self str {
         let group_offsets = self.partial_ovector.slice_from((n * 2) as uint);
         let start = group_offsets[0];
@@ -396,6 +402,24 @@ impl<'self> Match<'self> {
     /// Returns the number of substrings captured.
     pub fn string_count(&self) -> uint {
         self.string_count_ as uint
+    }
+}
+
+impl<'self> Clone for MatchIterator<'self> {
+    #[inline]
+    fn clone(&self) -> MatchIterator<'self> {
+        unsafe {
+            MatchIterator {
+                code: { detail::pcre_refcount(self.code as *mut detail::pcre, 1); self.code },
+                extra: self.extra,
+                capture_count: self.capture_count,
+                subject: self.subject,
+                subject_cstring: self.subject.to_c_str_unchecked(),
+                offset: self.offset,
+                options: self.options,
+                ovector: self.ovector.clone()
+            }
+        }
     }
 }
 
@@ -415,6 +439,7 @@ impl<'self> Drop for MatchIterator<'self> {
 
 impl<'self> Iterator<Match<'self>> for MatchIterator<'self> {
     /// Gets the next match.
+    #[inline]
     fn next(&mut self) -> Option<Match<'self>> {
         unsafe {
             do self.subject_cstring.with_ref |subject_c_str| -> Option<Match<'self>> {
