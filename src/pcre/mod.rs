@@ -19,7 +19,6 @@ use std::ptr;
 use std::vec;
 
 pub type options = c_int;
-pub type study_options = c_int;
 
 pub static PCRE_CASELESS: options = 0x00000001;
 pub static PCRE_MULTILINE: options = 0x00000002;
@@ -61,10 +60,12 @@ pub static PCRE_PARTIAL_HARD: options = 0x08000000;
 pub static PCRE_NOTEMPTY_ATSTART: options = 0x10000000;
 pub static PCRE_UCP: options = 0x20000000;
 
-pub static PCRE_STUDY_JIT_COMPILE: study_options = 0x0001;
-pub static PCRE_STUDY_JIT_PARTIAL_SOFT_COMPILE: study_options = 0x0002;
-pub static PCRE_STUDY_JIT_PARTIAL_HARD_COMPILE: study_options = 0x0004;
-pub static PCRE_STUDY_EXTRA_NEEDED: study_options = 0x0008;
+pub enum StudyOption {
+    JitCompile = 0x0001,
+    JitPartialSoftCompile = 0x0002,
+    JitPartialHardCompile = 0x0004,
+    ExtraNeeded = 0x0008
+}
 
 mod detail;
 
@@ -328,19 +329,19 @@ impl Pcre {
     /// # Return value
     /// `true` if additional information could be extracted. `false` otherwise.
     pub fn study(&mut self) -> bool {
-        self.study_with_options(0)
+        self.study_with_options([])
     }
 
     /// Studies the regular expression using the given bitwise-OR'd study options `options`
     /// to see if additional information can be extracted which might speed up matching.
     ///
     /// # Argument
-    /// * `options` - Bitwise OR'd study options. See the libpcre manpages, `man 3 pcre_study`,
-    ///   for more information.
+    /// * `options` - Study options. See the libpcre manpages, `man 3 pcre_study`, for more
+    ///   information about each option.
     ///
     /// # Return value
     /// `true` if additional information could be extracted. `false` otherwise.
-    pub fn study_with_options(&mut self, options: study_options) -> bool {
+    pub fn study_with_options(&mut self, options: &[StudyOption]) -> bool {
         unsafe {
             // If something else has a reference to `code` then it probably has a pointer to
             // the current study data (if any). Thus, we shouldn't free the current study data

@@ -18,6 +18,6 @@ extern {
     fn pcre_fullinfo(code: *::detail::pcre, extra: *::detail::pcre_extra, what: ::detail::fullinfo_field, where: *mut c_void) -> c_int;
     // Note: libpcre's pcre_refcount() function is not thread-safe.
     fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int;
-    fn pcre_study(code: *::detail::pcre, options: ::study_options, errptr: *mut *c_char) -> *mut ::detail::pcre_extra;
+    fn pcre_study(code: *::detail::pcre, options: ::detail::study_options, errptr: *mut *c_char) -> *mut ::detail::pcre_extra;
     fn pcre_version() -> *c_char;
 }

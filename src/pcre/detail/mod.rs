@@ -14,6 +14,7 @@ pub type fullinfo_field = c_int;
 pub struct pcre;
 pub type pcre_error = c_int;
 pub struct pcre_extra;
+pub type study_options = c_int;
 
 pub static PCRE_ERROR_NOMATCH: pcre_error = -1;
 pub static PCRE_ERROR_NULL: pcre_error = -2;
@@ -125,10 +126,11 @@ pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
 
 #[fixed_stack_segment]
 #[inline(never)]
-pub unsafe fn pcre_study(code: *::detail::pcre, options: ::study_options) -> *mut ::detail::pcre_extra {
+pub unsafe fn pcre_study(code: *::detail::pcre, options: &[::StudyOption]) -> *mut ::detail::pcre_extra {
     assert!(ptr::is_not_null(code));
+    let converted_options = options.iter().fold(0, |converted_options, &option| converted_options | (option as study_options));
     let mut err: *c_char = ptr::null();
-    let extra = native::pcre_study(code, options, &mut err);
+    let extra = native::pcre_study(code, converted_options, &mut err);
     // "The third argument for pcre_study() is a pointer for an error message. If
     // studying succeeds (even if no data is returned), the variable it points to is
     // set to NULL. Otherwise it is set to point to a textual error message. This is
