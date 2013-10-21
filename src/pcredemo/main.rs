@@ -15,8 +15,10 @@ use extra::getopts::*;
 use extra::treemap::{TreeMap};
 use pcre::*;
 use std::os;
+use std::util;
 
 fn print_usage(program: &str, opts: &[Opt]) {
+    util::ignore(opts);
     println!("Usage: {} [options] pattern subject", program);
     println("Options:");
     println("    -g                  Find all matches");
