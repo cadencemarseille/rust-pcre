@@ -207,7 +207,7 @@ fn main () {
             Err(err_str) => fail2!("Package script error: Failed to open `{}` for reading: {}", native_rs_in_path.to_str(), err_str),
             Ok(r)        => r
         };
-        let w = match io::file_writer(&native_rs_path, [io::Create]) {
+        let w = match io::file_writer(&native_rs_path, [io::Create, io::Truncate]) {
             Err(err_str) => fail2!("Package script error: Failed to open `{}` for writing: {}", native_rs_path.to_str(), err_str),
             Ok(w)        => w
         };
