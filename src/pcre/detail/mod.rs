@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::c_str::*;
-use std::libc::*;
+use std::c_str::{CString};
+use std::libc::{c_int, c_char, c_void, c_uchar};
 use std::ptr;
 
 pub type fullinfo_field = c_int;
@@ -64,8 +64,8 @@ pub unsafe fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uc
         // http://pcre.org/pcre.txt
         let err_cstring = CString::new(err, false);
         match err_cstring.as_str() {
-            None          => fail2!("pcre_compile() failed at offset {}", erroffset as uint),
-            Some(err_str) => fail2!("pcre_compile() failed at offset {}: {}", erroffset as uint, err_str)
+            None          => fail!("pcre_compile() failed at offset {}", erroffset as uint),
+            Some(err_str) => fail!("pcre_compile() failed at offset {}: {}", erroffset as uint, err_str)
         }
     }
     assert!(ptr::is_not_null(code));
@@ -140,7 +140,7 @@ pub unsafe fn pcre_study(code: *::detail::pcre, options: &[::StudyOption]) -> *m
         let err_cstring = CString::new(err, false);
         match err_cstring.as_str() {
             None          => error!("pcre_study() failed"),
-            Some(err_str) => error!("pcre_study() failed: %s", err_str)
+            Some(err_str) => error!("pcre_study() failed: {}", err_str)
         }
         fail!("pcre_study");
     }

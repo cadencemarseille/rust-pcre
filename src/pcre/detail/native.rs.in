@@ -6,18 +6,18 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::libc::*;
+use std::libc::{c_void, c_char, c_int, c_uchar};
 
 #[link_args = "@PCRE_LIBS@"]
 extern {
-    static pcre_free: extern "C" unsafe fn(ptr: *mut c_void);
+    pub static pcre_free: extern "C" unsafe fn(ptr: *mut c_void);
 
-    fn pcre_compile(pattern: *c_char, options: ::options, errptr: *mut *c_char, erroffset: *mut c_int, tableptr: *c_uchar) -> *mut ::detail::pcre;
-    fn pcre_exec(code: *::detail::pcre, extra: *::detail::pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: ::options, ovector: *mut c_int, ovecsize: c_int) -> c_int;
-    fn pcre_free_study(extra: *mut ::detail::pcre_extra);
-    fn pcre_fullinfo(code: *::detail::pcre, extra: *::detail::pcre_extra, what: ::detail::fullinfo_field, where: *mut c_void) -> c_int;
+    pub fn pcre_compile(pattern: *c_char, options: ::options, errptr: *mut *c_char, erroffset: *mut c_int, tableptr: *c_uchar) -> *mut ::detail::pcre;
+    pub fn pcre_exec(code: *::detail::pcre, extra: *::detail::pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: ::options, ovector: *mut c_int, ovecsize: c_int) -> c_int;
+    pub fn pcre_free_study(extra: *mut ::detail::pcre_extra);
+    pub fn pcre_fullinfo(code: *::detail::pcre, extra: *::detail::pcre_extra, what: ::detail::fullinfo_field, where: *mut c_void) -> c_int;
     // Note: libpcre's pcre_refcount() function is not thread-safe.
-    fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int;
-    fn pcre_study(code: *::detail::pcre, options: ::detail::study_options, errptr: *mut *c_char) -> *mut ::detail::pcre_extra;
-    fn pcre_version() -> *c_char;
+    pub fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int;
+    pub fn pcre_study(code: *::detail::pcre, options: ::detail::study_options, errptr: *mut *c_char) -> *mut ::detail::pcre_extra;
+    pub fn pcre_version() -> *c_char;
 }
