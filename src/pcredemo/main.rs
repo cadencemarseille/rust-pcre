@@ -11,9 +11,10 @@
 extern mod extra;
 extern mod pcre;
 
-use extra::getopts::{getopts, optflag, opt_present};
+use extra::getopts::{getopts, optflag, Opt};
 use extra::treemap::{TreeMap};
-use pcre::Pcre;
+use pcre::{Pcre, pcre_version, Match};
+use pcre::{PCRE_DUPNAMES};
 use std::os;
 use std::util;
 
