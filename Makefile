@@ -13,4 +13,4 @@ test:
 	rustc --test src/pcre/test.rs -o libtest~ && ./libtest~
 
 doc:
-	rustdoc --output doc html src/pcre/mod.rs
+	rustdoc --output doc -w html src/pcre/mod.rs
