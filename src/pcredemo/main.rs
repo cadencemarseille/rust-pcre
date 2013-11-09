@@ -11,9 +11,10 @@
 extern mod extra;
 extern mod pcre;
 
-use extra::getopts::*;
+use extra::getopts::{getopts, optflag, Opt};
 use extra::treemap::{TreeMap};
-use pcre::*;
+use pcre::{Pcre, pcre_version, Match};
+use pcre::{PCRE_DUPNAMES};
 use std::os;
 use std::util;
 
@@ -31,12 +32,12 @@ fn print_version_info() {
 }
 
 fn print_match(m: &Match, name_table: &TreeMap<~str, ~[uint]>) {
-    println(fmt!("Match succeeded at offset %u", m.group_start(0u)));
+    println!("Match succeeded at offset {:u}", m.group_start(0u));
 
     // Show captured substrings by number.
     let mut i = 0u;
     while i < m.string_count() {
-        println(fmt!("%2u: %s", i, m.group(i)));
+        println!("{:2u}: {:s}", i, m.group(i));
         i += 1;
     }
 
@@ -47,7 +48,7 @@ fn print_match(m: &Match, name_table: &TreeMap<~str, ~[uint]>) {
         println("Named substrings:");
         for (name, n_vec) in name_table.iter() {
             for n in n_vec.iter() {
-                println(fmt!("(%u) %s: %s", *n, *name, m.group(*n)));
+                println!("({:u}) {:s}: {:s}", *n, *name, m.group(*n));
             }
         }
     }

@@ -14,7 +14,9 @@ use extra::time;
 use rustc::driver::driver::host_triple;
 use rustpkg::api;
 use std::from_str::{from_str};
-use std::io;
+use std::rt::io::fs::{mkdir, File};
+use std::rt::io::buffered::BufferedReader;
+use std::rt::io;
 use std::option::{Option};
 use std::os;
 use std::run;
@@ -39,7 +41,7 @@ impl Version {
 
 impl ToStr for Version {
     fn to_str(&self) -> ~str {
-        fmt!("%u.%u", self.major, self.minor)
+        format!("{:u}.{:u}", self.major, self.minor)
     }
 }
 
@@ -51,13 +53,13 @@ impl Ord for Version {
 
 fn cd(path: &Path) {
     if !os::change_dir(path) {
-        fail2!("Package script error: Failed to `cd` into `{}`", path.to_str());
+        fail!("Package script error: Failed to `cd` into `{}`", path.display());
     }
 }
 
 fn do_install(args: ~[~str]) {
     let sysroot_arg = args[1].clone();
-    let sysroot_path = Path(sysroot_arg);
+    let sysroot_path = from_str(sysroot_arg).unwrap();
 
     let pcre_libs = match os::getenv("PCRE_LIBS") {
         None            => {
@@ -76,32 +78,33 @@ fn do_install(args: ~[~str]) {
     // `pcre-config` adds a newline to the end, which we need to trim away because newlines
     // in link_args cause build issues.
     let trimmed_pcre_libs = pcre_libs.trim();
-    debug!("PCRE_LIBS=\"%s\"", trimmed_pcre_libs);
+    debug!("PCRE_LIBS=\"{:s}\"", trimmed_pcre_libs);
 
     let workspace_path = os::getcwd();
 
     // Check the version
-    let target_build_path = workspace_path.push("build").push(host_triple());
-    if !os::path_exists(&target_build_path) {
-        if !os::make_dir(&target_build_path, 0x1FF) {
-            fail2!("Package script error: Failed to create target build directory `{}`", target_build_path.to_str());
+    let target_build_path = workspace_path.join("build").join(host_triple());
+    if !target_build_path.exists() {
+        if !io::result(|| mkdir(&target_build_path, 0x1FF)).is_ok() {
+            fail!("Package script error: Failed to create target build directory `{}`", target_build_path.display());
         }
     }
-    let out_path = target_build_path.push("pcre");
-    if !os::path_exists(&out_path) {
-        if !os::make_dir(&out_path, 0x1FF) {
-            fail2!("Package script error: Failed to create output directory `{}`", out_path.to_str());
+    let out_path = target_build_path.join("pcre");
+    if !out_path.exists() {
+        if !io::result(|| mkdir(&out_path, 0x1FF)).is_ok() {
+            fail!("Package script error: Failed to create output directory `{}`", out_path.display());
         }
     }
 
-    let versioncheck_rs_path = out_path.push("versioncheck.rs");
+    let versioncheck_rs_path = out_path.join("versioncheck.rs");
     {
-        let w = match io::file_writer(&versioncheck_rs_path, [io::Create]) {
-            Err(err_str) => fail2!("Package script error: Failed to open `{}` for writing: {}", versioncheck_rs_path.to_str(), err_str),
-            Ok(w)        => w
+        let mut w = match File::create(&versioncheck_rs_path) {
+            None => fail!("Package script error: Failed to open `{}` for writing", versioncheck_rs_path.display()),
+            Some(w)        => w
         };
-        w.write_str("\
-use std::c_str::{CString};
+        write!(&mut w as &mut Writer, "\
+\\#[feature(globs)];
+use std::c_str::\\{CString\\};
 use std::libc::*;
 use std::ptr;
 use std::vec;
@@ -110,65 +113,74 @@ type options = c_int;
 struct pcre;
 struct pcre_extra;
 
-#[link_args = \"" + trimmed_pcre_libs + "\"]
-extern {
+\\#[link_args = \"{:s}\"]
+extern \\{
     static pcre_free: extern \"C\" fn(ptr: *c_void);
 
     fn pcre_compile(pattern: *c_char, options: options, errptr: *mut *c_char, erroffset: *mut c_int, tableptr: *c_uchar) -> *pcre;
     fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: options, ovector: *mut c_int, ovecsize: c_int) -> c_int;
     fn pcre_version() -> *c_char;
-}
+\\}
 
-#[fixed_stack_segment]
-#[inline(never)]
-fn main () {
-    unsafe {
+\\#[fixed_stack_segment]
+\\#[inline(never)]
+fn main () \\{
+    unsafe \\{
         let version_cstring = CString::new(pcre_version(), false);
         let version_str = version_cstring.as_str().unwrap().to_owned();
 
-        let pattern = \"^\\\\d+\\\\.\\\\d+\";
-        do pattern.with_c_str |pattern_c_str| {
+        let pattern = \"^\\\\\\\\d+\\\\\\\\.\\\\\\\\d+\";
+        do pattern.with_c_str |pattern_c_str| \\{
             let mut err: *c_char = ptr::null();
             let mut erroffset: c_int = 0;
             let code = pcre_compile(pattern_c_str, 0, &mut err, &mut erroffset, ptr::null());
-            if ptr::is_null(code) {
-                if ptr::is_null(code) {
+            if ptr::is_null(code) \\{
+                if ptr::is_null(code) \\{
                     let err_cstring = CString::new(err, false);
-                    match err_cstring.as_str() {
-                        None          => fail2!(\"pcre_compile() failed at offset {}\", erroffset as uint),
-                        Some(err_str) => fail2!(\"pcre_compile() failed at offset {}: {}\", erroffset as uint, err_str)
-                    }
-                }
-            }
+                    match err_cstring.as_str() \\{
+                        None          => fail!(\"pcre_compile() failed at offset \\{\\}\", erroffset as uint),
+                        Some(err_str) => fail!(\"pcre_compile() failed at offset \\{\\}: \\{\\}\", erroffset as uint, err_str)
+                    \\}
+                \\}
+            \\}
             assert!(ptr::is_not_null(code));
 
             let ovecsize = 1 * 3;
             let mut ovector: ~[c_int] = vec::from_elem(ovecsize, 0 as c_int);
-            do version_str.with_c_str_unchecked |version_c_str| {
+            do version_str.with_c_str_unchecked |version_c_str| \\{
                 let rc = pcre_exec(code, ptr::null(), version_c_str, version_str.len() as c_int, 0, 0, vec::raw::to_mut_ptr(ovector), ovecsize as c_int);
-                if rc < 0 {
+                if rc < 0 \\{
                     fail!(\"pcre_exec() failed\");
-                }
+                \\}
 
                 print(version_str.slice_to(ovector[1] as uint));
-            }
+            \\}
 
             pcre_free(code as *c_void);
-        }
-    }
-}
-");
+        \\}
+    \\}
+\\}
+", trimmed_pcre_libs);
     }
 
     // Compile and run `versioncheck.rs`
     cd(&out_path);
-    let rust_run_output = run::process_output("rust", [~"run", ~"versioncheck.rs"]);
-    cd(&workspace_path);
-    if rust_run_output.status != 0 {
-        fail!("Package script error: `rust run versioncheck.rs` failed");
+    let rustc_run_output = run::process_output("rustc", [~"versioncheck.rs"]);
+    if rustc_run_output.status != 0 {
+        println(str::from_utf8(rustc_run_output.output));
+        println(str::from_utf8(rustc_run_output.error));
+        fail!("Package script error: `rustc versioncheck.rs` failed: {}", rustc_run_output.status);
     }
-    let output_ptr = vec::raw::to_ptr(rust_run_output.output);
-    let output_len = rust_run_output.output.len();
+    let version_check_output = run::process_output("./versioncheck", []);
+    if version_check_output.status != 0 {
+        println(str::from_utf8(version_check_output.output));
+        println(str::from_utf8(version_check_output.error));
+        fail!("versioncheck error: {}", version_check_output.status);
+    }
+    cd(&workspace_path);
+
+    let output_ptr = vec::raw::to_ptr(version_check_output.output);
+    let output_len = version_check_output.output.len();
     let output_str = unsafe { str::raw::from_buf_len(output_ptr, output_len) };
 
     // The "no debug symbols in executable" warning may be present in the output.
@@ -179,50 +191,53 @@ fn main () {
         Some(version_str) => version_str.to_owned()
     };
 
-    debug!("libpcre version %s", version_str);
+    debug!("libpcre version {:s}", version_str);
 
     let min_required_version = Version::parse("8.20").unwrap();
     let pcre_version = match Version::parse(version_str) {
-        None               => fail2!("Package script error: Failed to parse version string '{}'", version_str),
+        None               => fail!("Package script error: Failed to parse version string '{}'", version_str),
         Some(pcre_version) => pcre_version
     };
+
     if pcre_version < min_required_version {
-        fail2!("Package script error: Found libpcre version {}, but at least version {} is required", version_str, min_required_version.to_str());
+        fail!("Package script error: Found libpcre version {}, but at least version {} is required", version_str, min_required_version.to_str());
     }
 
-    let src_path = workspace_path.push("src");
+    let src_path = workspace_path.join("src");
 
     // Output `src/pcre/detail/native.rs`
-    let detail_src_path = src_path.push("pcre").push("detail");
-    if !os::path_exists(&detail_src_path) {
-        fail2!("Package script error: Source directory `{}` does not exist.", detail_src_path.to_str());
+    let detail_src_path = src_path.join("pcre").join("detail");
+    if !detail_src_path.exists() {
+        fail!("Package script error: Source directory `{}` does not exist.", detail_src_path.display());
     }
-    let native_rs_path = detail_src_path.push("native.rs");
-    let native_rs_in_path = detail_src_path.push("native.rs.in");
-    if !os::path_exists(&native_rs_in_path) {
-        fail2!("Package script error: Source file `{}` does not exist.", native_rs_in_path.to_str());
+    let native_rs_path = detail_src_path.join("native.rs");
+    let native_rs_in_path = detail_src_path.join("native.rs.in");
+    if !native_rs_in_path.exists() {
+        fail!("Package script error: Source file `{}` does not exist.", native_rs_in_path.display());
     }
     {
-        let r = match io::file_reader(&native_rs_in_path) {
-            Err(err_str) => fail2!("Package script error: Failed to open `{}` for reading: {}", native_rs_in_path.to_str(), err_str),
-            Ok(r)        => r
+        let r = match File::open(&native_rs_in_path) {
+            None => fail!("Package script error: Failed to open `{}` for reading", native_rs_in_path.display()),
+            Some(r)        => r
         };
-        let w = match io::file_writer(&native_rs_path, [io::Create, io::Truncate]) {
-            Err(err_str) => fail2!("Package script error: Failed to open `{}` for writing: {}", native_rs_path.to_str(), err_str),
-            Ok(w)        => w
+        let mut w = match File::create(&native_rs_path) {
+            None => fail!("Package script error: Failed to open `{}` for writing", native_rs_path.display()),
+            Some(w)        => w
         };
-        w.write_line("// -*- buffer-read-only: t -*-");
-        w.write_line("// Generated by " + args[0] + " on " + time::now().rfc822());
-        w.write_char('\n');
+        write!(&mut w as &mut Writer, "// -*- buffer-read-only: t -*-\n");
+        write!(&mut w as &mut Writer, "// Generated by {:s} on {:s}\n", args[0], time::now().rfc822());
 
-        do r.each_line |line| -> bool {
-            let substituted_line = str::replace(line, "@PCRE_LIBS@", trimmed_pcre_libs);
-            w.write_line(substituted_line);
-            true
-        };
+        let mut buffered_reader = BufferedReader::new(r);
+        while !buffered_reader.eof() {
+            let line = buffered_reader.read_line();
+            if line.is_some() {
+                let substituted_line = str::replace(line.unwrap(), "@PCRE_LIBS@", trimmed_pcre_libs);
+                write!(&mut w as &mut Writer, "{:s}", substituted_line);
+            }
+        }
     }
 
-    api::build_lib(sysroot_path, workspace_path, ~"pcre", rustpkg::version::ExactRevision(~"0.1"), Path("mod.rs"));
+    api::build_lib(sysroot_path, workspace_path, ~"pcre", rustpkg::version::ExactRevision(~"0.1"), from_str("mod.rs").unwrap());
 }
 
 fn do_configs(args: ~[~str]) {
@@ -244,6 +259,6 @@ fn main() {
     } else if args[2] == ~"configs" {
         do_configs(args);
     } else {
-        fail2!("Package script error: Unsupported command `{}`", args[2]);
+        fail!("Package script error: Unsupported command `{}`", args[2]);
     }
 }
