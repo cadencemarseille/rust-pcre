@@ -167,10 +167,14 @@ fn main () \\{
     cd(&out_path);
     let rustc_run_output = run::process_output("rustc", [~"versioncheck.rs"]);
     if rustc_run_output.status != 0 {
+        println(str::from_utf8(rustc_run_output.output));
+        println(str::from_utf8(rustc_run_output.error));
         fail!("Package script error: `rustc versioncheck.rs` failed: {}", rustc_run_output.status);
     }
     let version_check_output = run::process_output("./versioncheck", []);
     if version_check_output.status != 0 {
+        println(str::from_utf8(version_check_output.output));
+        println(str::from_utf8(version_check_output.error));
         fail!("versioncheck error: {}", version_check_output.status);
     }
     cd(&workspace_path);

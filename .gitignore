@@ -1,6 +1,7 @@
 *.dSYM
 *.dylib
 .DS_Store
+*.swp
 aclocal.m4
 autom4te.cache
 config.log
@@ -13,3 +14,4 @@ configure
 /lib
 /libtest~
 /src/pcre/detail/native.rs
+rustpkg_db.json
