@@ -2,6 +2,7 @@ before_install:
   - yes | sudo add-apt-repository ppa:hansjorg/rust
   - yes | sudo add-apt-repository ppa:otto-kesselgulasch/gimp-standalone
   - sudo apt-get update
+env: PCRE_LIBS="-L/opt/gimp-standalone/lib/x86_64-linux-gnu -lpcre"
 install:
   - sudo apt-get --download-only install libpcre3gsa
   - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa_1%3a8.31-2precise30~ppa_amd64.deb
