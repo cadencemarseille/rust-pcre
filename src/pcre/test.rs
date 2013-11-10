@@ -10,20 +10,25 @@ fn test_compile_nul() {
 }
 
 #[test]
-#[should_fail]
 fn test_compile_bad_pattern() {
-    Pcre::compile("[");
+    Pcre::compile("[").unwrap_err();
+}
+
+#[test]
+#[should_fail]
+fn test_compile_bad_pattern2() {
+    Pcre::compile("[").unwrap(); // Should be Err, will fail.
 }
 
 #[test]
 fn test_compile_capture_count() {
-    let re = Pcre::compile("(?:abc)(def)");
+    let re = Pcre::compile("(?:abc)(def)").unwrap();
     assert_eq!(re.capture_count(), 1u);
 }
 
 #[test]
 fn test_exec_basic() {
-    let re = Pcre::compile("^...$");
+    let re = Pcre::compile("^...$").unwrap();
     assert_eq!(re.capture_count(), 0u);
     let m = re.exec("abc").unwrap();
     assert_eq!(m.group(0), "abc");
@@ -31,21 +36,21 @@ fn test_exec_basic() {
 
 #[test]
 fn test_exec_no_match() {
-    let re = Pcre::compile("abc");
+    let re = Pcre::compile("abc").unwrap();
     assert!(re.exec("def").is_none());
 }
 
 #[test]
 fn test_exec_nul_byte() {
     // Nul bytes *are* allowed in subject strings, however.
-    let re = Pcre::compile("abc\\0def");
+    let re = Pcre::compile("abc\\0def").unwrap();
     let m = re.exec("abc\0def").unwrap();
     assert_eq!(m.group(0), "abc\0def");
 }
 
 #[test]
 fn test_exec_from_basic() {
-    let re = Pcre::compile("abc");
+    let re = Pcre::compile("abc").unwrap();
     let subject = "abcabc";
     let m1 = re.exec_from(subject, 1u).unwrap();
     assert_eq!(m1.group_start(0u), 3u);
@@ -57,7 +62,7 @@ fn test_exec_from_basic() {
 
 #[test]
 fn test_study_basic() {
-    let mut re = Pcre::compile("abc");
+    let mut re = Pcre::compile("abc").unwrap();
     let mut study_res = re.study();
     assert!(study_res);
     // Re-study the pattern two more times (to check for leaks when the test program
@@ -72,8 +77,10 @@ fn test_study_basic() {
 fn test_match_iter_basic() {
     let subject = "\0abc1111abcabc___ababc+a";
     let mut it = {
-        let re = Pcre::compile("abc");
+        let re = Pcre::compile("abc").unwrap();
         re.match_iter(subject)
+
+        // The MatchIterator should retain a reference to the `pcre`.
     };
 
     let mut opt_m = it.next();

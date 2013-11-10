@@ -1,5 +1,5 @@
 # rust-pcre
-[Rust](https://github.com/mozilla/rust) 0.8+ wrapper for [libpcre](http://pcre.org/) 8.20+.
+[Rust](https://github.com/mozilla/rust) 0.9-pre+ wrapper for [libpcre](http://pcre.org/) 8.20+.
 
 ## Quick Start
 
@@ -53,11 +53,17 @@ Then `make install`.
 ## Usage
 The basic use of the library involves compiling a pattern regular expression:
 
-    let re = Pcre::compile(pattern);
+    let re = match Pcre::compile(pattern) {
+        Err(err_str) => {
+        	// compilation failed
+        	return;
+        },
+        Ok(re) => re
+    };
 
 You can also pass options:
 
-    let re = Pcre::compile_with_options(pattern, PCRE_CASELESS);
+    let re = Pcre::compile_with_options(pattern, PCRE_CASELESS).unwrap();
 
 To test against a subject string, use one of the exec(), exec_from(), or exec_from_with_options() methods. For example:
 

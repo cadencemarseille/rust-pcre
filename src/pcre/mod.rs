@@ -16,6 +16,7 @@ use std::c_str;
 use std::libc::{c_char, c_int, c_uchar, c_void};
 use std::option::{Option};
 use std::ptr;
+use std::result::Result;
 use std::vec;
 
 pub type options = c_int;
@@ -119,7 +120,7 @@ impl Pcre {
     ///
     /// # Argument
     /// * `pattern` - The regular expression.
-    pub fn compile(pattern: &str) -> Pcre {
+    pub fn compile(pattern: &str) -> Result<Pcre, ~str> {
         Pcre::compile_with_options(pattern, 0)
     }
 
@@ -129,25 +130,30 @@ impl Pcre {
     /// * `pattern` - The regular expression.
     /// * `options` - Bitwise-OR'd compilation options. See the libpcre manpages,
     ///   `man 3 pcre_compile`, for more information.
-    pub fn compile_with_options(pattern: &str, options: options) -> Pcre {
+    pub fn compile_with_options(pattern: &str, options: options) -> Result<Pcre, ~str> {
         do pattern.with_c_str |pattern_c_str| {
             unsafe {
                 // Use the default character tables.
                 let tableptr: *c_uchar = ptr::null();
-                let code = detail::pcre_compile(pattern_c_str, options, tableptr) as *detail::pcre;
-                assert!(ptr::is_not_null(code));
-                // Take a reference.
-                detail::pcre_refcount(code as *mut detail::pcre, 1);
+                match detail::pcre_compile(pattern_c_str, options, tableptr) {
+                    Err(err_str) => Err(err_str),
+                    Ok(mut_code) => {
+                        let code = mut_code as *detail::pcre;
+                        assert!(ptr::is_not_null(code));
+                        // Take a reference.
+                        detail::pcre_refcount(code as *mut detail::pcre, 1);
 
-                let extra: *detail::pcre_extra = ptr::null();
+                        let extra: *detail::pcre_extra = ptr::null();
 
-                let mut capture_count: c_int = 0;
-                detail::pcre_fullinfo(code, extra, detail::PCRE_INFO_CAPTURECOUNT, &mut capture_count as *mut c_int as *mut c_void);
+                        let mut capture_count: c_int = 0;
+                        detail::pcre_fullinfo(code, extra, detail::PCRE_INFO_CAPTURECOUNT, &mut capture_count as *mut c_int as *mut c_void);
 
-                Pcre {
-                    code: code,
-                    extra: extra,
-                    capture_count_: capture_count
+                        Ok(Pcre {
+                            code: code,
+                            extra: extra,
+                            capture_count_: capture_count
+                        })
+                    }
                 }
             }
         }
