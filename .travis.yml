@@ -4,9 +4,11 @@ before_install:
   - sudo apt-get update
 install:
   - sudo apt-get --download-only install libpcre3gsa
-  - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa_*.deb
+  - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa_1%3a8.31-2precise30~ppa_amd64.deb
+  - sudo apt-get --download-only install libpcrecpp0gsa
+  - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcrecpp0gsa_1%3a8.31-2precise30~ppa_amd64.deb
   - sudo apt-get --download-only install libpcre3gsa-dev
-  - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa-dev_*.deb
+  - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa-dev_1%3a8.31-2precise30~ppa_amd64.deb
   - sudo apt-get install rust-nightly
 script:
   - make install
