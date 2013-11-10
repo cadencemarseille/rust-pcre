@@ -3,7 +3,7 @@ before_install:
   - yes | sudo add-apt-repository ppa:otto-kesselgulasch/gimp-standalone
   - sudo apt-get update
 install:
-  - sudo apt-get --download-only libpcre3gsa-dev
+  - sudo apt-get --download-only install libpcre3gsa-dev
   - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa-dev_1%3a8.31-2precise30~ppa_amd64.deb
   - sudo apt-get install rust-nightly
 script:
