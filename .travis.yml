@@ -3,7 +3,7 @@ before_install:
   - yes | sudo add-apt-repository ppa:otto-kesselgulasch/gimp-standalone
   - sudo apt-get update
 install:
-  - sudo apt-get install rust-nightly pcre3
+  - sudo apt-get install rust-nightly libpcre3gsa-dev
 script:
   - make install
   - make test
