@@ -6,7 +6,7 @@ install:
 	rustc src/pcredemo/main.rs -o bin/pcredemo
 
 clean:
-	$(RM) -r .rust bin build lib libtest~ libtest~.dSYM
+	$(RM) -r .rust bin build lib libtest~ libtest~.dSYM src/pcre/detail/native.rs
 
 test:
 	rustc --test src/pcre/test.rs -o libtest~ && ./libtest~
