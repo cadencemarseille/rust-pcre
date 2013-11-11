@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[link(name = "pcre", vers = "0.1")];
+#[link(name = "pcre", package_id = "pcre", vers = "0.1")];
 #[crate_type = "lib"];
 
 extern mod extra;
