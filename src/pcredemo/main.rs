@@ -103,8 +103,8 @@ fn main() {
     let subject = opt_matches.free[1].clone();
 
     let re = match Pcre::compile_with_options(pattern, PCRE_DUPNAMES) {
-        Err(err_str) => {
-            println!("Error: The pattern could not be compiled: {:s}", err_str);
+        Err(err) => {
+            println!("Error: The pattern could not be compiled: {:s}", err.to_str());
             os::set_exit_status(1);
             return;
         },

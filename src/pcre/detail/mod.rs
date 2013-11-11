@@ -51,7 +51,7 @@ mod native;
 
 #[fixed_stack_segment]
 #[inline(never)]
-pub unsafe fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uchar) -> Result<*mut pcre, ~str> {
+pub unsafe fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uchar) -> Result<*mut pcre, (Option<~str>, c_int)> {
     assert!(ptr::is_not_null(pattern));
     let mut err: *c_char = ptr::null();
     let mut erroffset: c_int = 0;
@@ -64,12 +64,15 @@ pub unsafe fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uc
         // must not try to free it."
         // http://pcre.org/pcre.txt
         let err_cstring = CString::new(err, false);
-        let err_str = match err_cstring.as_str() {
-            None          => format!("compilation failed at offset {:u}", erroffset as uint),
-            Some(err_str) => format!("compilation failed at offset {:u}: {:s}", erroffset as uint, err_str)
-        };
+        //let err_str = match err_cstring.as_str() {
+        //    None          => format!("compilation failed at offset {:u}", erroffset as uint),
+        //    Some(err_str) => format!("compilation failed at offset {:u}: {:s}", erroffset as uint, err_str)
+        //};
 
-        Err(err_str)
+        match err_cstring.as_str() {
+            None => Err((None, erroffset)),
+            Some(err_str) => Err((Some(err_str.to_owned()), erroffset))
+        }
     } else {
         assert!(ptr::is_not_null(code));
         assert_eq!(erroffset, 0);

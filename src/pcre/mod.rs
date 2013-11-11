@@ -70,6 +70,14 @@ pub enum StudyOption {
 
 mod detail;
 
+pub struct CompilationError {
+
+    priv opt_err: Option<~str>,
+
+    priv erroffset: c_int
+
+}
+
 /// Wrapper for libpcre's `pcre` object (representing a compiled regular expression).
 pub struct Pcre {
 
@@ -115,12 +123,32 @@ pub struct MatchIterator<'self> {
 
 }
 
+impl CompilationError {
+    pub fn message(&self) -> Option<~str> {
+        self.opt_err.clone()
+    }
+
+    pub fn offset(&self) -> uint {
+        self.erroffset as uint
+    }
+}
+
+impl ToStr for CompilationError {
+    fn to_str(&self) -> ~str {
+        if self.opt_err.is_none() {
+            format!("compilation failed at offset {:u}", self.erroffset as uint)
+        } else {
+            format!("compilation failed at offset {:u}: {:s}", self.erroffset as uint, self.opt_err.get_ref().as_slice())
+        }
+    }
+}
+
 impl Pcre {
     /// Compiles the given regular expression.
     ///
     /// # Argument
     /// * `pattern` - The regular expression.
-    pub fn compile(pattern: &str) -> Result<Pcre, ~str> {
+    pub fn compile(pattern: &str) -> Result<Pcre, CompilationError> {
         Pcre::compile_with_options(pattern, 0)
     }
 
@@ -130,13 +158,16 @@ impl Pcre {
     /// * `pattern` - The regular expression.
     /// * `options` - Bitwise-OR'd compilation options. See the libpcre manpages,
     ///   `man 3 pcre_compile`, for more information.
-    pub fn compile_with_options(pattern: &str, options: options) -> Result<Pcre, ~str> {
+    pub fn compile_with_options(pattern: &str, options: options) -> Result<Pcre, CompilationError> {
         do pattern.with_c_str |pattern_c_str| {
             unsafe {
                 // Use the default character tables.
                 let tableptr: *c_uchar = ptr::null();
                 match detail::pcre_compile(pattern_c_str, options, tableptr) {
-                    Err(err_str) => Err(err_str),
+                    Err((opt_err, erroffset)) => Err(CompilationError {
+                        opt_err: opt_err,
+                        erroffset: erroffset
+                    }),
                     Ok(mut_code) => {
                         let code = mut_code as *detail::pcre;
                         assert!(ptr::is_not_null(code));

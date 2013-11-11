@@ -11,7 +11,8 @@ fn test_compile_nul() {
 
 #[test]
 fn test_compile_bad_pattern() {
-    Pcre::compile("[").unwrap_err();
+    let err = Pcre::compile("[").unwrap_err();
+    assert_eq!(err.offset(), 1u);
 }
 
 #[test]

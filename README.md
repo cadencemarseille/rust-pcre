@@ -56,7 +56,7 @@ Then `make install`.
 The basic use of the library involves compiling a pattern regular expression:
 
     let re = match Pcre::compile(pattern) {
-        Err(err_str) => {
+        Err(err) => {
         	// compilation failed
         	return;
         },
