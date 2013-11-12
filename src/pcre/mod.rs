@@ -135,10 +135,9 @@ impl CompilationError {
 
 impl ToStr for CompilationError {
     fn to_str(&self) -> ~str {
-        if self.opt_err.is_none() {
-            format!("compilation failed at offset {:u}", self.erroffset as uint)
-        } else {
-            format!("compilation failed at offset {:u}: {:s}", self.erroffset as uint, self.opt_err.get_ref().as_slice())
+        match self.opt_err {
+            None => format!("compilation failed at offset {:u}", self.erroffset as uint),
+            Some(ref s) => format!("compilation failed at offset {:u}: {:s}", self.erroffset as uint, s.as_slice())
         }
     }
 }
