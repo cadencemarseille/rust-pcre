@@ -14,9 +14,9 @@ use extra::time;
 use rustc::driver::driver::host_triple;
 use rustpkg::api;
 use std::from_str::{from_str};
-use std::rt::io::fs::{mkdir, File};
-use std::rt::io::buffered::BufferedReader;
-use std::rt::io;
+use std::io::fs::{mkdir, File};
+use std::io::buffered::BufferedReader;
+use std::io;
 use std::option::{Option};
 use std::os;
 use std::run;
@@ -64,7 +64,7 @@ fn do_install(args: ~[~str]) {
     let pcre_libs = match os::getenv("PCRE_LIBS") {
         None            => {
             let pcre_config_output = run::process_output("pcre-config", [~"--libs"]);
-            if pcre_config_output.status != 0 {
+            if !pcre_config_output.status.success() {
                 fail!("Package script error: `pcre-config` failed");
             }
             let output_ptr = vec::raw::to_ptr(pcre_config_output.output);
@@ -166,13 +166,13 @@ fn main () \\{
     // Compile and run `versioncheck.rs`
     cd(&out_path);
     let rustc_run_output = run::process_output("rustc", [~"versioncheck.rs"]);
-    if rustc_run_output.status != 0 {
+    if !rustc_run_output.status.success() {
         println(str::from_utf8(rustc_run_output.output));
         println(str::from_utf8(rustc_run_output.error));
         fail!("Package script error: `rustc versioncheck.rs` failed: {}", rustc_run_output.status);
     }
     let version_check_output = run::process_output("./versioncheck", []);
-    if version_check_output.status != 0 {
+    if !version_check_output.status.success() {
         println(str::from_utf8(version_check_output.output));
         println(str::from_utf8(version_check_output.error));
         fail!("versioncheck error: {}", version_check_output.status);
