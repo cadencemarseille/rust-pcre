@@ -341,7 +341,7 @@ impl Pcre {
 
             let mut i = 0u;
             while i < name_count {
-                let n: uint = (ptr::read_ptr(tabptr as *mut c_uchar) as uint << 8) | (ptr::read_ptr(ptr::offset(tabptr, 1) as *mut c_uchar) as uint);
+                let n: uint = (ptr::read_ptr(tabptr) as uint << 8) | (ptr::read_ptr(ptr::offset(tabptr, 1)) as uint);
                 let name_cstring = c_str::CString::new(ptr::offset(tabptr, 2) as *c_char, false);
                 let name: ~str = name_cstring.as_str().unwrap().to_owned();
                 // TODO Avoid the double lookup.
