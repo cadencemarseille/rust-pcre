@@ -11,13 +11,16 @@
 
 extern mod extra;
 
+use extra::enum_set::{CLike, EnumSet};
 use extra::treemap::{TreeMap};
 use std::c_str;
 use std::libc::{c_char, c_int, c_uchar, c_void};
 use std::option::{Option};
 use std::ptr;
-use std::result::Result;
+use std::result::{Result};
 use std::vec;
+
+mod detail;
 
 pub type options = c_int;
 
@@ -67,8 +70,6 @@ pub enum StudyOption {
     JitPartialHardCompile = 0x0004,
     ExtraNeeded = 0x0008
 }
-
-mod detail;
 
 pub struct CompilationError {
 
@@ -121,6 +122,22 @@ pub struct MatchIterator<'self> {
 
     priv ovector: ~[c_int]
 
+}
+
+impl CLike for StudyOption {
+    fn from_uint(v: uint) -> StudyOption {
+        match v {
+            0x0001 => JitCompile,
+            0x0002 => JitPartialSoftCompile,
+            0x0004 => JitPartialHardCompile,
+            0x0008 => ExtraNeeded,
+            _ => fail!("unknown StudyOption value {:u}", v)
+        }
+    }
+
+    fn to_uint(&self) -> uint {
+        *self as uint
+    }
 }
 
 impl CompilationError {
@@ -365,7 +382,8 @@ impl Pcre {
     /// # Return value
     /// `true` if additional information could be extracted. `false` otherwise.
     pub fn study(&mut self) -> bool {
-        self.study_with_options([])
+        let no_options: EnumSet<StudyOption> = EnumSet::empty();
+        self.study_with_options(&no_options)
     }
 
     /// Studies the regular expression using the given bitwise-OR'd study options `options`
@@ -377,7 +395,7 @@ impl Pcre {
     ///
     /// # Return value
     /// `true` if additional information could be extracted. `false` otherwise.
-    pub fn study_with_options(&mut self, options: &[StudyOption]) -> bool {
+    pub fn study_with_options(&mut self, options: &EnumSet<StudyOption>) -> bool {
         unsafe {
             // If something else has a reference to `code` then it probably has a pointer to
             // the current study data (if any). Thus, we shouldn't free the current study data

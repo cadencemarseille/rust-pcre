@@ -6,10 +6,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+extern mod extra;
+
+use extra::enum_set::{EnumSet};
 use std::c_str::{CString};
 use std::libc::{c_int, c_char, c_void, c_uchar};
 use std::ptr;
-use std::result::Result;
+use std::result::{Result};
+
+mod native;
 
 pub type fullinfo_field = c_int;
 pub struct pcre;
@@ -46,8 +51,6 @@ pub static PCRE_INFO_REQUIREDCHAR: fullinfo_field = 21;
 pub static PCRE_INFO_REQUIREDCHARFLAGS: fullinfo_field = 22;
 pub static PCRE_INFO_MATCHLIMIT: fullinfo_field = 23;
 pub static PCRE_INFO_RECURSIONLIMIT: fullinfo_field = 24;
-
-mod native;
 
 #[fixed_stack_segment]
 #[inline(never)]
@@ -133,9 +136,9 @@ pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
 
 #[fixed_stack_segment]
 #[inline(never)]
-pub unsafe fn pcre_study(code: *::detail::pcre, options: &[::StudyOption]) -> *mut ::detail::pcre_extra {
+pub unsafe fn pcre_study(code: *::detail::pcre, options: &EnumSet<::StudyOption>) -> *mut ::detail::pcre_extra {
     assert!(ptr::is_not_null(code));
-    let converted_options = options.iter().fold(0, |converted_options, &option| converted_options | (option as study_options));
+    let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as study_options));
     let mut err: *c_char = ptr::null();
     let extra = native::pcre_study(code, converted_options, &mut err);
     // "The third argument for pcre_study() is a pointer for an error message. If
