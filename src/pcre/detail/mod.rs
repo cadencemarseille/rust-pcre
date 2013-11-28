@@ -52,8 +52,6 @@ pub static PCRE_INFO_REQUIREDCHARFLAGS: fullinfo_field = 22;
 pub static PCRE_INFO_MATCHLIMIT: fullinfo_field = 23;
 pub static PCRE_INFO_RECURSIONLIMIT: fullinfo_field = 24;
 
-#[fixed_stack_segment]
-#[inline(never)]
 pub unsafe fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uchar) -> Result<*mut pcre, (Option<~str>, c_int)> {
     assert!(ptr::is_not_null(pattern));
     let mut err: *c_char = ptr::null();
@@ -84,8 +82,6 @@ pub unsafe fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uc
     }
 }
 
-#[fixed_stack_segment]
-#[inline(never)]
 pub unsafe fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: ::options, ovector: *mut c_int, ovecsize: c_int) -> c_int {
     assert!(ptr::is_not_null(code));
     assert!(ovecsize >= 0 && ovecsize % 3 == 0);
@@ -99,20 +95,14 @@ pub unsafe fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, lengt
     rc
 }
 
-#[fixed_stack_segment]
-#[inline(never)]
 pub unsafe fn pcre_free(ptr: *mut c_void) {
     native::pcre_free(ptr);
 }
 
-#[fixed_stack_segment]
-#[inline(never)]
 pub unsafe fn pcre_free_study(extra: *mut pcre_extra) {
     native::pcre_free_study(extra);
 }
 
-#[fixed_stack_segment]
-#[inline(never)]
 pub unsafe fn pcre_fullinfo(code: *pcre, extra: *pcre_extra, what: fullinfo_field, where: *mut c_void) {
     assert!(ptr::is_not_null(code));
     let rc = native::pcre_fullinfo(code, extra, what, where);
@@ -121,8 +111,6 @@ pub unsafe fn pcre_fullinfo(code: *pcre, extra: *pcre_extra, what: fullinfo_fiel
     }
 }
 
-#[fixed_stack_segment]
-#[inline(never)]
 pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
     assert!(ptr::is_not_null(code));
     let curr_refcount = native::pcre_refcount(code, 0);
@@ -134,8 +122,6 @@ pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
     native::pcre_refcount(code, adjust)
 }
 
-#[fixed_stack_segment]
-#[inline(never)]
 pub unsafe fn pcre_study(code: *::detail::pcre, options: &EnumSet<::StudyOption>) -> *mut ::detail::pcre_extra {
     assert!(ptr::is_not_null(code));
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as study_options));
@@ -159,8 +145,6 @@ pub unsafe fn pcre_study(code: *::detail::pcre, options: &EnumSet<::StudyOption>
     extra
 }
 
-#[fixed_stack_segment]
-#[inline(never)]
 pub fn pcre_version() -> ~str {
     let version_cstring = unsafe { CString::new(native::pcre_version(), false) };
     version_cstring.as_str().unwrap().to_owned()

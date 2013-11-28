@@ -122,8 +122,6 @@ extern \\{
     fn pcre_version() -> *c_char;
 \\}
 
-\\#[fixed_stack_segment]
-\\#[inline(never)]
 fn main () \\{
     unsafe \\{
         let version_cstring = CString::new(pcre_version(), false);
