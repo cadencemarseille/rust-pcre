@@ -31,7 +31,7 @@ struct Version {
 
 impl Version {
     pub fn parse(version_str: &str) -> Option<Version> {
-        let mut it = version_str.split_iter('.');
+        let mut it = version_str.split('.');
         match (it.next().and_then(from_str::<uint>), it.next().and_then(from_str::<uint>)) {
             (Some(major), Some(minor)) => Some(Version { major: major, minor: minor }),
             _                          => None
@@ -185,7 +185,7 @@ fn main () \\{
 
     // The "no debug symbols in executable" warning may be present in the output.
     // https://github.com/mozilla/rust/issues/3495
-    let mut output_rsplit_iter = output_str.rsplit_iter('\n');
+    let mut output_rsplit_iter = output_str.rsplit('\n');
     let version_str: ~str = match output_rsplit_iter.next() {
         None              => output_str.clone(),
         Some(version_str) => version_str.to_owned()
