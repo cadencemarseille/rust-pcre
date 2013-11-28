@@ -171,7 +171,7 @@ impl Pcre {
     /// * `options` - Bitwise-OR'd compilation options. See the libpcre manpages,
     ///   `man 3 pcre_compile`, for more information.
     pub fn compile_with_options(pattern: &str, options: options) -> Result<Pcre, CompilationError> {
-        do pattern.with_c_str |pattern_c_str| {
+        pattern.with_c_str(|pattern_c_str| {
             unsafe {
                 // Use the default character tables.
                 let tableptr: *c_uchar = ptr::null();
@@ -199,7 +199,7 @@ impl Pcre {
                     }
                 }
             }
-        }
+        })
     }
 
     /// Returns the number of capture groups in the regular expression, including one for
@@ -278,7 +278,7 @@ impl Pcre {
         let mut ovector: ~[c_int] = vec::from_elem(ovecsize as uint, 0 as c_int);
 
         unsafe {
-            do subject.with_c_str_unchecked |subject_c_str| -> Option<Match<'a>> {
+            subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
                 let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, vec::raw::to_mut_ptr(ovector), ovecsize as c_int);
                 if rc >= 0 {
                     Some(Match {
@@ -289,7 +289,7 @@ impl Pcre {
                 } else {
                     None
                 }
-            }
+            })
         }
     }
 
@@ -493,7 +493,7 @@ impl<'self> Iterator<Match<'self>> for MatchIterator<'self> {
     #[inline]
     fn next(&mut self) -> Option<Match<'self>> {
         unsafe {
-            do self.subject_cstring.with_ref |subject_c_str| -> Option<Match<'self>> {
+            self.subject_cstring.with_ref(|subject_c_str| -> Option<Match<'self>> {
                 let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, self.options, vec::raw::to_mut_ptr(self.ovector), self.ovector.len() as c_int);
                 if rc >= 0 {
                     // Update the iterator state.
@@ -507,7 +507,7 @@ impl<'self> Iterator<Match<'self>> for MatchIterator<'self> {
                 } else {
                     None
                 }
-            }
+            })
         }
     }
 }

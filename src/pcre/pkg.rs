@@ -130,7 +130,7 @@ fn main () \\{
         let version_str = version_cstring.as_str().unwrap().to_owned();
 
         let pattern = \"^\\\\\\\\d+\\\\\\\\.\\\\\\\\d+\";
-        do pattern.with_c_str |pattern_c_str| \\{
+        pattern.with_c_str(|pattern_c_str| \\{
             let mut err: *c_char = ptr::null();
             let mut erroffset: c_int = 0;
             let code = pcre_compile(pattern_c_str, 0, &mut err, &mut erroffset, ptr::null());
@@ -147,17 +147,17 @@ fn main () \\{
 
             let ovecsize = 1 * 3;
             let mut ovector: ~[c_int] = vec::from_elem(ovecsize, 0 as c_int);
-            do version_str.with_c_str_unchecked |version_c_str| \\{
+            version_str.with_c_str_unchecked(|version_c_str| \\{
                 let rc = pcre_exec(code, ptr::null(), version_c_str, version_str.len() as c_int, 0, 0, vec::raw::to_mut_ptr(ovector), ovecsize as c_int);
                 if rc < 0 \\{
                     fail!(\"pcre_exec() failed\");
                 \\}
 
                 print(version_str.slice_to(ovector[1] as uint));
-            \\}
+            \\});
 
             pcre_free(code as *c_void);
-        \\}
+        \\});
     \\}
 \\}
 ", trimmed_pcre_libs);
