@@ -299,8 +299,8 @@ impl Pcre {
     /// # Argument
     /// * `subject` - The subject string.
     #[inline]
-    pub fn match_iter<'a>(&self, subject: &'a str) -> MatchIterator<'a> {
-        self.match_iter_with_options(subject, 0)
+    pub fn matches<'a>(&self, subject: &'a str) -> MatchIterator<'a> {
+        self.matches_with_options(subject, 0)
     }
 
     /// Creates a `MatchIterator` for iterating through matches within the given subject
@@ -311,7 +311,7 @@ impl Pcre {
     /// * `options` - Bitwise-OR'd matching options. See the libpcre manpages, `man 3 pcre_exec`,
     ///   for more information.
     #[inline]
-    pub fn match_iter_with_options<'a>(&self, subject: &'a str, options: options) -> MatchIterator<'a> {
+    pub fn matches_with_options<'a>(&self, subject: &'a str, options: options) -> MatchIterator<'a> {
         unsafe {
             let ovecsize = (self.capture_count_ + 1) * 3;
             MatchIterator {

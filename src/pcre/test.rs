@@ -75,11 +75,11 @@ fn test_study_basic() {
 }
 
 #[test]
-fn test_match_iter_basic() {
+fn test_matches_basic() {
     let subject = "\0abc1111abcabc___ababc+a";
     let mut it = {
         let re = Pcre::compile("abc").unwrap();
-        re.match_iter(subject)
+        re.matches(subject)
 
         // The MatchIterator should retain a reference to the `pcre`.
     };
