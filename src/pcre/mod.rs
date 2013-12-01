@@ -121,18 +121,23 @@ pub struct MatchIterator<'self> {
 }
 
 impl CLike for StudyOption {
-    fn from_uint(v: uint) -> StudyOption {
-        match v {
-            0x0001 => JitCompile,
-            0x0002 => JitPartialSoftCompile,
-            0x0004 => JitPartialHardCompile,
-            0x0008 => ExtraNeeded,
-            _ => fail!("unknown StudyOption value {:u}", v)
+    fn from_uint(n: uint) -> StudyOption {
+        match n {
+            1u => JitCompile,
+            2u => JitPartialSoftCompile,
+            3u => JitPartialHardCompile,
+            4u => ExtraNeeded,
+            _ => fail!("unknown StudyOption number {:u}", n)
         }
     }
 
     fn to_uint(&self) -> uint {
-        *self as uint
+        match *self {
+            JitCompile => 1u,
+            JitPartialSoftCompile => 2u,
+            JitPartialHardCompile => 3u,
+            ExtraNeeded => 4u
+        }
     }
 }
 
