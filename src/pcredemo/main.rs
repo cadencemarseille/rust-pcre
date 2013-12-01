@@ -11,10 +11,10 @@
 extern mod extra;
 extern mod pcre;
 
-use extra::getopts::{getopts, optflag, Opt};
+use extra::enum_set::{EnumSet};
+use extra::getopts::{Opt, getopts, optflag};
 use extra::treemap::{TreeMap};
-use pcre::{Pcre, pcre_version, Match};
-use pcre::{PCRE_DUPNAMES};
+use pcre::{CompileOption, Match, Pcre, pcre_version};
 use std::os;
 use std::util;
 
@@ -102,7 +102,9 @@ fn main() {
     let pattern = opt_matches.free[0].clone();
     let subject = opt_matches.free[1].clone();
 
-    let re = match Pcre::compile_with_options(pattern, PCRE_DUPNAMES) {
+    let mut compile_options: EnumSet<CompileOption> = EnumSet::empty();
+    compile_options.add(pcre::DupNames);
+    let re = match Pcre::compile_with_options(pattern, &compile_options) {
         Err(err) => {
             println!("Error: The pattern could not be compiled: {:s}", err.to_str());
             os::set_exit_status(1);

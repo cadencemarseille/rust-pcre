@@ -22,50 +22,60 @@ use std::vec;
 
 mod detail;
 
-pub type options = c_int;
-
-pub static PCRE_CASELESS: options = 0x00000001;
-pub static PCRE_MULTILINE: options = 0x00000002;
-pub static PCRE_DOTALL: options = 0x00000004;
-pub static PCRE_EXTENDED: options = 0x00000008;
-pub static PCRE_ANCHORED: options = 0x00000010;
-pub static PCRE_DOLLAR_ENDONLY: options = 0x00000020;
-pub static PCRE_EXTRA: options = 0x00000040;
-pub static PCRE_NOTBOL: options = 0x00000080;
-pub static PCRE_NOTEOL: options = 0x00000100;
-pub static PCRE_UNGREEDY: options = 0x00000200;
-pub static PCRE_NOTEMPTY: options = 0x00000400;
-pub static PCRE_UTF8: options = 0x00000800;
-pub static PCRE_NO_AUTO_CAPTURE: options = 0x00001000;
-pub static PCRE_NO_UTF8_CHECK: options = 0x00002000;
-pub static PCRE_AUTO_CALLOUT: options = 0x00004000;
-pub static PCRE_PARTIAL_SOFT: options = 0x00008000;
-pub static PCRE_PARTIAL: options = 0x00008000;
-pub static PCRE_NEVER_UTF: options = 0x00010000;
-pub static PCRE_DFA_SHORTEST: options = 0x00010000;
-pub static PCRE_DFA_RESTART: options = 0x00020000;
-pub static PCRE_FIRSTLINE: options = 0x00040000;
-pub static PCRE_DUPNAMES: options = 0x00080000;
-pub static PCRE_NEWLINE_CR: options = 0x00100000;
-pub static PCRE_NEWLINE_LF: options = 0x00200000;
-pub static PCRE_NEWLINE_CRLF: options = 0x00300000;
-pub static PCRE_NEWLINE_ANY: options = 0x00400000;
-pub static PCRE_NEWLINE_ANYCRLF: options = 0x00500000;
-pub static PCRE_BSR_ANYCRLF: options = 0x00800000;
-pub static PCRE_BSR_UNICODE: options = 0x01000000;
-pub static PCRE_JAVASCRIPT_COMPAT: options = 0x02000000;
-pub static PCRE_NO_START_OPTIMIZE: options = 0x04000000;
-pub static PCRE_NO_START_OPTIMISE: options = 0x04000000;
-pub static PCRE_PARTIAL_HARD: options = 0x08000000;
-pub static PCRE_NOTEMPTY_ATSTART: options = 0x10000000;
-pub static PCRE_UCP: options = 0x20000000;
-
-pub enum StudyOption {
-    JitCompile = 0x0001,
-    JitPartialSoftCompile = 0x0002,
-    JitPartialHardCompile = 0x0004,
-    ExtraNeeded = 0x0008
+#[deriving(Clone)]
+pub enum CompileOption {
+    Caseless = 0x00000001,
+    Multiline = 0x00000002,
+    DotAll = 0x00000004,
+    Extended = 0x00000008,
+    Anchored = 0x00000010,
+    DollarEndOnly = 0x00000020,
+    Extra = 0x00000040,
+    Ungreedy = 0x00000200,
+    NoAutoCapture = 0x00001000,
+    AutoCallout = 0x00004000,
+    FirstLine = 0x00040000,
+    DupNames = 0x00080000,
+    NewlineCR = 0x00100000,
+    NewlineLF = 0x00200000,
+    NewlineCRLF = 0x00300000,
+    NewlineAny = 0x00400000,
+    NewlineAnyCRLF = 0x00500000,
+    BsrAnyCRLF = 0x00800000,
+    BsrUnicode = 0x01000000,
+    JavaScriptCompat = 0x02000000,
+    Ucp = 0x20000000
 }
+
+#[deriving(Clone)]
+pub enum StudyOption {
+    StudyJitCompile = 0x0001,
+    StudyJitPartialSoftCompile = 0x0002,
+    StudyJitPartialHardCompile = 0x0004,
+    StudyExtraNeeded = 0x0008
+}
+
+#[deriving(Clone)]
+pub enum ExecOption {
+    ExecAnchored = 0x00000010,
+    ExecNotBol = 0x00000080,
+    ExecNotEol = 0x00000100,
+    ExecNotEmpty = 0x00000400,
+    ExecPartialSoft = 0x00008000,
+    ExecNewlineCR = 0x00100000,
+    ExecNewlineLF = 0x00200000,
+    ExecNewlineCRLF = 0x00300000,
+    ExecNewlineAny = 0x00400000,
+    ExecNewlineAnyCRLF = 0x00500000,
+    ExecBsrAnyCRLF = 0x00800000,
+    ExecBsrUnicode = 0x01000000,
+    ExecNoStartOptimise = 0x04000000,
+    ExecPartialHard = 0x08000000,
+    ExecNotEmptyAtStart = 0x10000000
+}
+
+pub static ExecPartial: ExecOption = ExecPartialSoft;
+pub static ExecNoStartOptimize: ExecOption = ExecNoStartOptimise;
 
 pub struct CompilationError {
 
@@ -114,29 +124,127 @@ pub struct MatchIterator<'self> {
 
     priv offset: c_int,
 
-    priv options: options,
+    priv options: EnumSet<ExecOption>,
 
     priv ovector: ~[c_int]
 
 }
 
+impl CLike for CompileOption {
+    fn from_uint(n: uint) -> CompileOption {
+        match n {
+            1u => Caseless,
+            2u => Multiline,
+            3u => DotAll,
+            4u => Extended,
+            5u => Anchored,
+            6u => DollarEndOnly,
+            7u => Extra,
+            8u => Ungreedy,
+            9u => NoAutoCapture,
+            10u => AutoCallout,
+            11u => FirstLine,
+            12u => DupNames,
+            13u => NewlineCR,
+            14u => NewlineLF,
+            15u => NewlineCRLF,
+            16u => NewlineAny,
+            17u => NewlineAnyCRLF,
+            18u => BsrAnyCRLF,
+            19u => BsrUnicode,
+            20u => JavaScriptCompat,
+            21u => Ucp,
+            _ => fail!("unknown CompileOption number {:u}", n)
+        }
+    }
+
+    fn to_uint(&self) -> uint {
+        match *self {
+            Caseless => 1u,
+            Multiline => 2u,
+            DotAll => 3u,
+            Extended => 4u,
+            Anchored => 5u,
+            DollarEndOnly => 6u,
+            Extra => 7u,
+            Ungreedy => 8u,
+            NoAutoCapture => 9u,
+            AutoCallout => 10u,
+            FirstLine => 11u,
+            DupNames => 12u,
+            NewlineCR => 13u,
+            NewlineLF => 14u,
+            NewlineCRLF => 15u,
+            NewlineAny => 16u,
+            NewlineAnyCRLF => 17u,
+            BsrAnyCRLF => 18u,
+            BsrUnicode => 19u,
+            JavaScriptCompat => 20u,
+            Ucp => 21u
+        }
+    }
+}
+
 impl CLike for StudyOption {
     fn from_uint(n: uint) -> StudyOption {
         match n {
-            1u => JitCompile,
-            2u => JitPartialSoftCompile,
-            3u => JitPartialHardCompile,
-            4u => ExtraNeeded,
+            1u => StudyJitCompile,
+            2u => StudyJitPartialSoftCompile,
+            3u => StudyJitPartialHardCompile,
+            4u => StudyExtraNeeded,
             _ => fail!("unknown StudyOption number {:u}", n)
         }
     }
 
     fn to_uint(&self) -> uint {
         match *self {
-            JitCompile => 1u,
-            JitPartialSoftCompile => 2u,
-            JitPartialHardCompile => 3u,
-            ExtraNeeded => 4u
+            StudyJitCompile => 1u,
+            StudyJitPartialSoftCompile => 2u,
+            StudyJitPartialHardCompile => 3u,
+            StudyExtraNeeded => 4u
+        }
+    }
+}
+
+impl CLike for ExecOption {
+    fn from_uint(n: uint) -> ExecOption {
+        match n {
+            1u => ExecAnchored,
+            2u => ExecNotBol,
+            3u => ExecNotEol,
+            4u => ExecNotEmpty,
+            5u => ExecPartialSoft,
+            6u => ExecNewlineCR,
+            7u => ExecNewlineLF,
+            8u => ExecNewlineCRLF,
+            9u => ExecNewlineAny,
+            10u => ExecNewlineAnyCRLF,
+            11u => ExecBsrAnyCRLF,
+            12u => ExecBsrUnicode,
+            13u => ExecNoStartOptimise,
+            14u => ExecPartialHard,
+            15u => ExecNotEmptyAtStart,
+            _ => fail!("unknown ExecOption number {:u}", n)
+        }
+    }
+
+    fn to_uint(&self) -> uint {
+        match *self {
+            ExecAnchored => 1u,
+            ExecNotBol => 2u,
+            ExecNotEol => 3u,
+            ExecNotEmpty => 4u,
+            ExecPartialSoft => 5u,
+            ExecNewlineCR => 6u,
+            ExecNewlineLF => 7u,
+            ExecNewlineCRLF => 8u,
+            ExecNewlineAny => 9u,
+            ExecNewlineAnyCRLF => 10u,
+            ExecBsrAnyCRLF => 11u,
+            ExecBsrUnicode => 12u,
+            ExecNoStartOptimise => 13u,
+            ExecPartialHard => 14u,
+            ExecNotEmptyAtStart => 15u
         }
     }
 }
@@ -166,7 +274,8 @@ impl Pcre {
     /// # Argument
     /// * `pattern` - The regular expression.
     pub fn compile(pattern: &str) -> Result<Pcre, CompilationError> {
-        Pcre::compile_with_options(pattern, 0)
+        let no_options: EnumSet<CompileOption> = EnumSet::empty();
+        Pcre::compile_with_options(pattern, &no_options)
     }
 
     /// Compiles a regular expression using the given bitwise-OR'd options `options`.
@@ -175,7 +284,7 @@ impl Pcre {
     /// * `pattern` - The regular expression.
     /// * `options` - Bitwise-OR'd compilation options. See the libpcre manpages,
     ///   `man 3 pcre_compile`, for more information.
-    pub fn compile_with_options(pattern: &str, options: options) -> Result<Pcre, CompilationError> {
+    pub fn compile_with_options(pattern: &str, options: &EnumSet<CompileOption>) -> Result<Pcre, CompilationError> {
         pattern.with_c_str(|pattern_c_str| {
             unsafe {
                 // Use the default character tables.
@@ -255,7 +364,8 @@ impl Pcre {
     /// speed up matching. See the [study()](#fn.study) method.
     #[inline]
     pub fn exec_from<'a>(&self, subject: &'a str, startoffset: uint) -> Option<Match<'a>> {
-        self.exec_from_with_options(subject, startoffset, 0)
+        let no_options: EnumSet<ExecOption> = EnumSet::empty();
+        self.exec_from_with_options(subject, startoffset, &no_options)
     }
 
     /// Matches the compiled regular expression against a given subject string `subject`
@@ -278,7 +388,7 @@ impl Pcre {
     /// If a regular expression will be used often, it might be worth studying it to possibly
     /// speed up matching. See the [study()](#fn.study) method.
     #[inline]
-    pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: options) -> Option<Match<'a>> {
+    pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: &EnumSet<ExecOption>) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
         let mut ovector: ~[c_int] = vec::from_elem(ovecsize as uint, 0 as c_int);
 
@@ -305,7 +415,8 @@ impl Pcre {
     /// * `subject` - The subject string.
     #[inline]
     pub fn matches<'a>(&self, subject: &'a str) -> MatchIterator<'a> {
-        self.matches_with_options(subject, 0)
+        let no_options: EnumSet<ExecOption> = EnumSet::empty();
+        self.matches_with_options(subject, &no_options)
     }
 
     /// Creates a `MatchIterator` for iterating through matches within the given subject
@@ -316,7 +427,7 @@ impl Pcre {
     /// * `options` - Bitwise-OR'd matching options. See the libpcre manpages, `man 3 pcre_exec`,
     ///   for more information.
     #[inline]
-    pub fn matches_with_options<'a>(&self, subject: &'a str, options: options) -> MatchIterator<'a> {
+    pub fn matches_with_options<'a>(&self, subject: &'a str, options: &EnumSet<ExecOption>) -> MatchIterator<'a> {
         unsafe {
             let ovecsize = (self.capture_count_ + 1) * 3;
             MatchIterator {
@@ -324,9 +435,9 @@ impl Pcre {
                 extra: self.extra,
                 capture_count: self.capture_count_,
                 subject: subject,
-                subject_cstring: subject.to_c_str_unchecked(),
+                subject_cstring: subject.to_c_str_unchecked(), // the subject string can contain NUL bytes
                 offset: 0,
-                options: options,
+                options: options.clone(),
                 ovector: vec::from_elem(ovecsize as uint, 0 as c_int)
             }
         }
@@ -499,7 +610,7 @@ impl<'self> Iterator<Match<'self>> for MatchIterator<'self> {
     fn next(&mut self) -> Option<Match<'self>> {
         unsafe {
             self.subject_cstring.with_ref(|subject_c_str| -> Option<Match<'self>> {
-                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, self.options, vec::raw::to_mut_ptr(self.ovector), self.ovector.len() as c_int);
+                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, &self.options, vec::raw::to_mut_ptr(self.ovector), self.ovector.len() as c_int);
                 if rc >= 0 {
                     // Update the iterator state.
                     self.offset = self.ovector[1];

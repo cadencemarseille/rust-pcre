@@ -16,11 +16,16 @@ use std::result::{Result};
 
 mod native;
 
+pub type compile_options = c_int;
+pub type exec_options = c_int;
 pub type fullinfo_field = c_int;
 pub struct pcre;
 pub type pcre_error = c_int;
 pub struct pcre_extra;
 pub type study_options = c_int;
+
+pub static PCRE_UTF8: c_int = 0x00000800;
+pub static PCRE_NO_UTF8_CHECK: c_int = 0x00002000;
 
 pub static PCRE_ERROR_NOMATCH: pcre_error = -1;
 pub static PCRE_ERROR_NULL: pcre_error = -2;
@@ -52,11 +57,12 @@ pub static PCRE_INFO_REQUIREDCHARFLAGS: fullinfo_field = 22;
 pub static PCRE_INFO_MATCHLIMIT: fullinfo_field = 23;
 pub static PCRE_INFO_RECURSIONLIMIT: fullinfo_field = 24;
 
-pub unsafe fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uchar) -> Result<*mut pcre, (Option<~str>, c_int)> {
+pub unsafe fn pcre_compile(pattern: *c_char, options: &EnumSet<::CompileOption>, tableptr: *c_uchar) -> Result<*mut pcre, (Option<~str>, c_int)> {
     assert!(ptr::is_not_null(pattern));
+    let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as compile_options)) | PCRE_UTF8 | PCRE_NO_UTF8_CHECK;
     let mut err: *c_char = ptr::null();
     let mut erroffset: c_int = 0;
-    let code = native::pcre_compile(pattern, options, &mut err, &mut erroffset, tableptr);
+    let code = native::pcre_compile(pattern, converted_options, &mut err, &mut erroffset, tableptr);
 
     if ptr::is_null(code) {
         // "Otherwise, if  compilation  of  a  pattern fails, pcre_compile() returns
@@ -82,10 +88,11 @@ pub unsafe fn pcre_compile(pattern: *c_char, options: ::options, tableptr: *c_uc
     }
 }
 
-pub unsafe fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: ::options, ovector: *mut c_int, ovecsize: c_int) -> c_int {
+pub unsafe fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: &EnumSet<::ExecOption>, ovector: *mut c_int, ovecsize: c_int) -> c_int {
     assert!(ptr::is_not_null(code));
     assert!(ovecsize >= 0 && ovecsize % 3 == 0);
-    let rc = native::pcre_exec(code, extra, subject, length, startoffset, options, ovector, ovecsize);
+    let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as compile_options)) | PCRE_NO_UTF8_CHECK;
+    let rc = native::pcre_exec(code, extra, subject, length, startoffset, converted_options, ovector, ovecsize);
     if rc == PCRE_ERROR_NOMATCH {
         return -1;
     } else if rc < 0 && rc != PCRE_ERROR_NULL {

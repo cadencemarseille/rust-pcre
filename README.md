@@ -65,7 +65,9 @@ The basic use of the library involves compiling a pattern regular expression:
 
 You can also pass options:
 
-    let re = Pcre::compile_with_options(pattern, PCRE_CASELESS).unwrap();
+    let mut compile_options: EnumSet<CompileOption> = EnumSet::empty();
+    compile_options.add(pcre::Caseless)
+    let re = Pcre::compile_with_options(pattern, &compile_options).unwrap();
 
 To test against a subject string, use one of the exec(), exec_from(), or exec_from_with_options() methods. For example:
 
