@@ -71,10 +71,6 @@ pub unsafe fn pcre_compile(pattern: *c_char, options: &EnumSet<::CompileOption>,
         // must not try to free it."
         // http://pcre.org/pcre.txt
         let err_cstring = CString::new(err, false);
-        //let err_str = match err_cstring.as_str() {
-        //    None          => format!("compilation failed at offset {:u}", erroffset as uint),
-        //    Some(err_str) => format!("compilation failed at offset {:u}: {:s}", erroffset as uint, err_str)
-        //};
 
         match err_cstring.as_str() {
             None => Err((None, erroffset)),
