@@ -239,7 +239,7 @@ fn main () \\{
 }
 
 fn do_configs(args: ~[~str]) {
-    util::ignore(args);
+    drop(args);
 }
 
 fn main() {

@@ -19,7 +19,7 @@ use std::os;
 use std::util;
 
 fn print_usage(program: &str, opts: &[Opt]) {
-    util::ignore(opts);
+    drop(opts);
     println!("Usage: {} [options] pattern subject", program);
     println("Options:");
     println("    -g                  Find all matches");
