@@ -21,7 +21,6 @@ use std::option::{Option};
 use std::os;
 use std::run;
 use std::str;
-use std::util;
 use std::vec;
 
 struct Version {
