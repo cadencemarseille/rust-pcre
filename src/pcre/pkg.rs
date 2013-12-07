@@ -103,6 +103,7 @@ fn do_install(args: ~[~str]) {
         };
         write!(&mut w as &mut Writer, "\
 \\#[feature(globs)];
+\\#[feature(link_args)];
 use std::c_str::\\{CString\\};
 use std::libc::*;
 use std::ptr;

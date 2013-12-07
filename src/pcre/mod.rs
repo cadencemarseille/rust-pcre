@@ -6,6 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+#[feature(link_args)];
+
 #[link(name = "pcre", package_id = "pcre", vers = "0.1")];
 #[crate_type = "lib"];
 
