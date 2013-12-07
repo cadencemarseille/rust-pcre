@@ -16,7 +16,6 @@ use extra::getopts::{Opt, getopts, optflag};
 use extra::treemap::{TreeMap};
 use pcre::{CompileOption, Match, Pcre, pcre_version};
 use std::os;
-use std::util;
 
 fn print_usage(program: &str, opts: &[Opt]) {
     drop(opts);
