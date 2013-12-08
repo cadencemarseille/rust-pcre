@@ -62,7 +62,14 @@ fn do_install(args: ~[~str]) {
 
     let pcre_libs = match os::getenv("PCRE_LIBS") {
         None            => {
-            let pcre_config_output = run::process_output("pcre-config", [~"--libs"]);
+            let pcre_config_output = io::io_error::cond.trap(|e: io::IoError| {
+                match e.kind {
+                    io::FileNotFound => fail!("Package script error: Could not run `pcre-config` because no such executable is in the executable search PATH. Make sure that you have installed a dev package for libpcre and/or make sure that libpcre's bindir is added to your PATH (currently \"{}\").", os::getenv("PATH").unwrap_or(~"")),
+                    _ => fail!("Package script error: Could not run `pcre-config`: {}", e.to_str())
+                }
+            }).inside(|| -> run::ProcessOutput {
+                run::process_output("pcre-config", [~"--libs"])
+            });
             if !pcre_config_output.status.success() {
                 fail!("Package script error: `pcre-config` failed");
             }
