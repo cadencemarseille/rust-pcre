@@ -99,9 +99,9 @@ pub struct Pcre {
 }
 
 /// Represents a match of a subject string against a regular expression.
-pub struct Match<'self> {
+pub struct Match<'a> {
 
-    priv subject: &'self str,
+    priv subject: &'a str,
 
     priv partial_ovector: ~[c_int],
 
@@ -110,7 +110,7 @@ pub struct Match<'self> {
 }
 
 /// Iterator type for iterating matches within a subject string.
-pub struct MatchIterator<'self> {
+pub struct MatchIterator<'a> {
 
     priv code: *detail::pcre,
 
@@ -118,7 +118,7 @@ pub struct MatchIterator<'self> {
 
     priv capture_count: c_int,
 
-    priv subject: &'self str,
+    priv subject: &'a str,
 
     /// The subject string as a `CString`. In MatchIterator's next() method, this is re-used
     /// each time so that only one C-string copy of the subject string needs to be allocated.
@@ -542,7 +542,7 @@ impl Drop for Pcre {
     }
 }
 
-impl<'self> Match<'self> {
+impl<'a> Match<'a> {
     /// Returns the start index within the subject string of capture group `n`.
     pub fn group_start(&self, n: uint) -> uint {
         self.partial_ovector[(n * 2) as uint] as uint
@@ -561,7 +561,7 @@ impl<'self> Match<'self> {
 
     /// Returns the substring for capture group `n` as a slice.
     #[inline]
-    pub fn group(&self, n: uint) -> &'self str {
+    pub fn group(&self, n: uint) -> &'a str {
         let group_offsets = self.partial_ovector.slice_from((n * 2) as uint);
         let start = group_offsets[0];
         let end = group_offsets[1];
@@ -574,9 +574,9 @@ impl<'self> Match<'self> {
     }
 }
 
-impl<'self> Clone for MatchIterator<'self> {
+impl<'a> Clone for MatchIterator<'a> {
     #[inline]
-    fn clone(&self) -> MatchIterator<'self> {
+    fn clone(&self) -> MatchIterator<'a> {
         unsafe {
             MatchIterator {
                 code: { detail::pcre_refcount(self.code as *mut detail::pcre, 1); self.code },
@@ -593,7 +593,7 @@ impl<'self> Clone for MatchIterator<'self> {
 }
 
 #[unsafe_destructor]
-impl<'self> Drop for MatchIterator<'self> {
+impl<'a> Drop for MatchIterator<'a> {
     fn drop(&mut self) {
         unsafe {
             if detail::pcre_refcount(self.code as *mut detail::pcre, -1) == 0 {
@@ -606,12 +606,12 @@ impl<'self> Drop for MatchIterator<'self> {
     }
 }
 
-impl<'self> Iterator<Match<'self>> for MatchIterator<'self> {
+impl<'a> Iterator<Match<'a>> for MatchIterator<'a> {
     /// Gets the next match.
     #[inline]
-    fn next(&mut self) -> Option<Match<'self>> {
+    fn next(&mut self) -> Option<Match<'a>> {
         unsafe {
-            self.subject_cstring.with_ref(|subject_c_str| -> Option<Match<'self>> {
+            self.subject_cstring.with_ref(|subject_c_str| -> Option<Match<'a>> {
                 let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, &self.options, vec::raw::to_mut_ptr(self.ovector), self.ovector.len() as c_int);
                 if rc >= 0 {
                     // Update the iterator state.
