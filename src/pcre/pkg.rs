@@ -68,7 +68,7 @@ fn do_install(args: ~[~str]) {
                     _ => fail!("Package script error: Could not run `pcre-config`: {}", e.to_str())
                 }
             }).inside(|| -> run::ProcessOutput {
-                run::process_output("pcre-config", [~"--libs"])
+                run::process_output("pcre-config", [~"--libs"]).expect("failed to exec `pcre-config`")
             });
             if !pcre_config_output.status.success() {
                 fail!("Package script error: `pcre-config` failed");
@@ -170,13 +170,13 @@ fn main () \\{
 
     // Compile and run `versioncheck.rs`
     cd(&out_path);
-    let rustc_run_output = run::process_output("rustc", [~"versioncheck.rs"]);
+    let rustc_run_output = run::process_output("rustc", [~"versioncheck.rs"]).expect("failed to exec `rustc`");
     if !rustc_run_output.status.success() {
         println(str::from_utf8(rustc_run_output.output));
         println(str::from_utf8(rustc_run_output.error));
         fail!("Package script error: `rustc versioncheck.rs` failed: {}", rustc_run_output.status);
     }
-    let version_check_output = run::process_output("./versioncheck", []);
+    let version_check_output = run::process_output("./versioncheck", []).expect("failed to exec `./versioncheck`");
     if !version_check_output.status.success() {
         println(str::from_utf8(version_check_output.output));
         println(str::from_utf8(version_check_output.error));
