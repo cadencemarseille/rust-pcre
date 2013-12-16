@@ -396,7 +396,7 @@ impl Pcre {
 
         unsafe {
             subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
-                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, vec::raw::to_mut_ptr(ovector), ovecsize as c_int);
+                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, ovector.as_mut_ptr(), ovecsize as c_int);
                 if rc >= 0 {
                     Some(Match {
                         subject: subject,
@@ -612,7 +612,7 @@ impl<'a> Iterator<Match<'a>> for MatchIterator<'a> {
     fn next(&mut self) -> Option<Match<'a>> {
         unsafe {
             self.subject_cstring.with_ref(|subject_c_str| -> Option<Match<'a>> {
-                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, &self.options, vec::raw::to_mut_ptr(self.ovector), self.ovector.len() as c_int);
+                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, &self.options, self.ovector.as_mut_ptr(), self.ovector.len() as c_int);
                 if rc >= 0 {
                     // Update the iterator state.
                     self.offset = self.ovector[1];

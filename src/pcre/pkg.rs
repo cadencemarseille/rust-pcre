@@ -21,7 +21,6 @@ use std::option::{Option};
 use std::os;
 use std::run;
 use std::str;
-use std::vec;
 
 struct Version {
     major: uint,
@@ -73,7 +72,7 @@ fn do_install(args: ~[~str]) {
             if !pcre_config_output.status.success() {
                 fail!("Package script error: `pcre-config` failed");
             }
-            let output_ptr = vec::raw::to_ptr(pcre_config_output.output);
+            let output_ptr = pcre_config_output.output.as_ptr();
             let output_len = pcre_config_output.output.len();
             let libs_str = unsafe { str::raw::from_buf_len(output_ptr, output_len) };
             os::setenv("PCRE_LIBS", libs_str);
@@ -153,7 +152,7 @@ fn main () \\{
             let ovecsize = 1 * 3;
             let mut ovector: ~[c_int] = vec::from_elem(ovecsize, 0 as c_int);
             version_str.with_c_str_unchecked(|version_c_str| \\{
-                let rc = pcre_exec(code, ptr::null(), version_c_str, version_str.len() as c_int, 0, 0, vec::raw::to_mut_ptr(ovector), ovecsize as c_int);
+                let rc = pcre_exec(code, ptr::null(), version_c_str, version_str.len() as c_int, 0, 0, ovector.as_mut_ptr(), ovecsize as c_int);
                 if rc < 0 \\{
                     fail!(\"pcre_exec() failed\");
                 \\}
@@ -184,7 +183,7 @@ fn main () \\{
     }
     cd(&workspace_path);
 
-    let output_ptr = vec::raw::to_ptr(version_check_output.output);
+    let output_ptr = version_check_output.output.as_ptr();
     let output_len = version_check_output.output.len();
     let output_str = unsafe { str::raw::from_buf_len(output_ptr, output_len) };
 
