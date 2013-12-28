@@ -8,7 +8,7 @@
 
 #[feature(link_args)];
 
-#[link(name = "pcre", package_id = "pcre", vers = "0.1")];
+#[crate_id = "pcre#0.1"];
 #[crate_type = "lib"];
 
 extern mod extra;
