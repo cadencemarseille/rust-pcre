@@ -15,6 +15,7 @@ use extra::enum_set::{EnumSet};
 use extra::getopts::{Opt, getopts, optflag};
 use extra::treemap::{TreeMap};
 use pcre::{CompileOption, Match, Pcre, pcre_version};
+use std::io::stdio::stderr;
 use std::os;
 
 fn print_usage(program: &str, opts: &[Opt]) {
@@ -67,7 +68,7 @@ fn main() {
     let opt_matches = match getopts(args.tail(), opts) {
         Ok(m)  => m,
         Err(f) => {
-            println!("Error: {}", f.to_err_msg());
+            stderr().write_line(format!("Error: {}", f.to_err_msg()));
             os::set_exit_status(1);
             return;
         }
@@ -85,15 +86,15 @@ fn main() {
 
     let find_all = opt_matches.opt_present("g");
     if opt_matches.free.len() == 0 {
-        println!("Error: No pattern");
+        stderr().write_line("Error: No pattern");
         os::set_exit_status(1);
         return;
     } else if opt_matches.free.len() == 1 {
-        println!("Error: No subject");
+        stderr().write_line("Error: No subject");
         os::set_exit_status(1);
         return;
     } else if opt_matches.free.len() > 2 {
-        println!("Error: Too many command line arguments");
+        stderr().write_line("Error: Too many command line arguments");
         os::set_exit_status(1);
         return;
     }
@@ -105,7 +106,7 @@ fn main() {
     compile_options.add(pcre::DupNames);
     let re = match Pcre::compile_with_options(pattern, &compile_options) {
         Err(err) => {
-            println!("Error: The pattern could not be compiled: {:s}", err.to_str());
+            stderr().write_line(format!("Error: The pattern could not be compiled: {:s}", err.to_str()));
             os::set_exit_status(1);
             return;
         },
