@@ -20,10 +20,10 @@ use std::os;
 fn print_usage(program: &str, opts: &[Opt]) {
     drop(opts);
     println!("Usage: {} [options] pattern subject", program);
-    println!("{}", "Options:");
-    println!("{}", "    -g                  Find all matches");
-    println!("{}", "    -h, --help          Print usage and exit");
-    println!("{}", "    --version           Print version information and exit");
+    println!("Options:");
+    println!("    -g                  Find all matches");
+    println!("    -h, --help          Print usage and exit");
+    println!("    --version           Print version information and exit");
 }
 
 fn print_version_info() {
@@ -42,9 +42,9 @@ fn print_match(m: &Match, name_table: &TreeMap<~str, ~[uint]>) {
 
     let name_count = name_table.len();
     if name_count <= 0 {
-        println!("{}", "No named substrings");
+        println!("No named substrings");
     } else {
-        println!("{}", "Named substrings:");
+        println!("Named substrings:");
         for (name, n_vec) in name_table.iter() {
             for n in n_vec.iter() {
                 println!("({:u}) {:s}: {:s}", *n, *name, m.group(*n));
@@ -85,15 +85,15 @@ fn main() {
 
     let find_all = opt_matches.opt_present("g");
     if opt_matches.free.len() == 0 {
-        println!("{}", "Error: No pattern");
+        println!("Error: No pattern");
         os::set_exit_status(1);
         return;
     } else if opt_matches.free.len() == 1 {
-        println!("{}", "Error: No subject");
+        println!("Error: No subject");
         os::set_exit_status(1);
         return;
     } else if opt_matches.free.len() > 2 {
-        println!("{}", "Error: Too many command line arguments");
+        println!("Error: Too many command line arguments");
         os::set_exit_status(1);
         return;
     }
@@ -116,7 +116,7 @@ fn main() {
     let opt_m = re.exec(subject);
     let m = match opt_m {
         None => {
-            println!("{}", "No match");
+            println!("No match");
             os::set_exit_status(1);
             return;
         }
@@ -130,13 +130,13 @@ fn main() {
             let opt_m = re.exec_from(subject, start_offset);
             let m = match opt_m {
                 None => {
-                    println!("{}", "\nNo more matches");
+                    println!("\nNo more matches");
                     return;
                 }
                 Some(m) => m
             };
 
-            println!("{}", "");
+            println!("");
             print_match(&m, &name_table);
 
             start_offset = m.group_end(0);
