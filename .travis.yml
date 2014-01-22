@@ -1,11 +1,12 @@
 env:
   global:
-    - secure: ZJw1xAEOb7Yr7bvXHxtPmJ3WzH+d72Kv2DjheBpSMBOpxDVSJoakQpVMDFuj7xXqTmIE5iACRKdvmqCULCVtHnsbrAeMUrIKs96baL/DgZRnvmCLocpa5+4gUccHiDiYrZ4sSt2hg2Phvicpy+sQyxnprDbQbBkMkk+uCmHevQY=
+    - secure: T4uyJ+OrJlSFUZsDhMrX4+Byi/+SPkT8r7yX4nwaKywJtvfbrN43KH3dcDQRqh41xgs9lMVUBTyfeKuNv6AHF0XODIk3rKwfr9FU8XC5Wb1lz9lA1YbTDIkZIJrfetN8b/AY2W3Y35x6stlqQZciuqekSBv0MW5QLxNhb/fokDc=
+    - PCRE_LIBS="-L/opt/gimp-standalone/lib/x86_64-linux-gnu -lpcre" 
+    - LD_LIBRARY_PATH="/opt/gimp-standalone/lib/x86_64-linux-gnu"
 before_install:
   - yes | sudo add-apt-repository ppa:hansjorg/rust
   - yes | sudo add-apt-repository ppa:otto-kesselgulasch/gimp-standalone
   - sudo apt-get update
-env: PCRE_LIBS="-L/opt/gimp-standalone/lib/x86_64-linux-gnu -lpcre" LD_LIBRARY_PATH="/opt/gimp-standalone/lib/x86_64-linux-gnu"
 install:
   - sudo apt-get --download-only install libpcre3gsa
   - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa_*.deb
