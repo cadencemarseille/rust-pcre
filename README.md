@@ -79,6 +79,8 @@ To test against a subject string, use one of the exec(), exec_from(), or exec_fr
 
 See the [source of `pcredemo`](https://github.com/cadencemarseille/rust-pcre/blob/master/src/pcredemo/main.rs) for a complete example.
 
+You can view the latest documentation online at: http://www.rust-ci.org/cadencemarseille/rust-pcre/doc/pcre/
+
 ## Development
 
 Patches and GitHub pull requests (PRs) are always welcome.
