@@ -239,7 +239,7 @@ fn main () \\{
         }
     }
 
-    api::build_lib(sysroot_path, workspace_path, ~"pcre", rustpkg::version::ExactRevision(~"0.1"), from_str("mod.rs").unwrap());
+    api::build_lib(sysroot_path, workspace_path, ~"pcre", from_str("mod.rs").unwrap());
 }
 
 fn do_configs(args: ~[~str]) {
