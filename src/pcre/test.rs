@@ -6,7 +6,7 @@ use pcre::Pcre;
 #[should_fail]
 fn test_compile_nul() {
     // Nul bytes are not allowed in the pattern string.
-    Pcre::compile("\0abc");
+    drop(Pcre::compile("\0abc"));
 }
 
 #[test]
@@ -18,7 +18,7 @@ fn test_compile_bad_pattern() {
 #[test]
 #[should_fail]
 fn test_compile_bad_pattern2() {
-    Pcre::compile("[").unwrap(); // Should be Err, will fail.
+    drop(Pcre::compile("[").unwrap()); // Should be Err, will fail.
 }
 
 #[test]
