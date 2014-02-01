@@ -6,8 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern mod extra;
-
 use extra::enum_set::{EnumSet};
 use std::c_str::{CString};
 use std::libc::{c_int, c_char, c_void, c_uchar};

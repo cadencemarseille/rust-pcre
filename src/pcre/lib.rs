@@ -8,10 +8,9 @@
 
 #[feature(link_args)];
 
-#[crate_id = "pcre#0.1"];
 #[crate_type = "lib"];
 
-extern mod extra;
+extern mod extra = "extra#0.10-pre";
 
 use extra::enum_set::{CLike, EnumSet};
 use extra::treemap::{TreeMap};

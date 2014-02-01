@@ -57,7 +57,7 @@ fn cd(path: &Path) {
 
 fn do_install(args: ~[~str]) {
     let sysroot_arg = args[1].clone();
-    let sysroot_path = from_str(sysroot_arg).unwrap();
+    let sysroot_path: Path = from_str(sysroot_arg).unwrap();
 
     let pcre_libs = match os::getenv("PCRE_LIBS") {
         None            => {
@@ -239,7 +239,8 @@ fn main () \\{
         }
     }
 
-    api::build_lib(sysroot_path, workspace_path, ~"pcre", from_str("mod.rs").unwrap());
+    let context = api::default_context(sysroot_path, api::default_workspace());
+    api::install_pkg(&context, workspace_path, ~"pcre", ~[]);
 }
 
 fn do_configs(args: ~[~str]) {
