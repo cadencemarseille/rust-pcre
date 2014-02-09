@@ -7,7 +7,6 @@
 // except according to those terms.
 
 extern mod rustc;
-extern mod rustpkg;
 
 use rustc::driver::driver::host_triple;
 use std::from_str::{from_str};
