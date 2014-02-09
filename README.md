@@ -5,7 +5,7 @@
 
 ## Quick Start
 
-**Note:** If you see linker errors when running `make install`, you might need to export an environment variable, `PCRE_LIBDIR`, that points to the directory containing libpcre's import library.
+**Note:** If you see linker errors when running `make install` (for example, "undefined reference to \`pcre_free_study'"), you might need to export an environment variable, `PCRE_LIBDIR`, that points to the directory containing libpcre's import library.
 
 ### Debian
 
