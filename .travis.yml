@@ -1,7 +1,7 @@
 env:
   global:
     - secure: T4uyJ+OrJlSFUZsDhMrX4+Byi/+SPkT8r7yX4nwaKywJtvfbrN43KH3dcDQRqh41xgs9lMVUBTyfeKuNv6AHF0XODIk3rKwfr9FU8XC5Wb1lz9lA1YbTDIkZIJrfetN8b/AY2W3Y35x6stlqQZciuqekSBv0MW5QLxNhb/fokDc=
-    - PCRE_LIBS="-L/opt/gimp-standalone/lib/x86_64-linux-gnu -lpcre" 
+    - PCRE_LIBDIR="-L/opt/gimp-standalone/lib/x86_64-linux-gnu"
     - LD_LIBRARY_PATH="/opt/gimp-standalone/lib/x86_64-linux-gnu"
 before_install:
   - yes | sudo add-apt-repository ppa:hansjorg/rust
@@ -18,6 +18,6 @@ install:
 script:
   - make install
   - make doc
-  - make test
+  - make test "PCRE_LIBDIR=$PCRE_LIBDIR"
 after_script:
   - curl http://www.rust-ci.org/artifacts/put?t=$RUSTCI_TOKEN | sh

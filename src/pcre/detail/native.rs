@@ -1,4 +1,4 @@
-// Copyright 2013 The rust-pcre authors.
+// Copyright 2014 The rust-pcre authors.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -6,9 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::libc::{c_void, c_char, c_int, c_uchar};
+use std::libc::{c_char, c_int, c_uchar, c_void};
 
-#[link_args = "@PCRE_LIBS@"]
+#[link(name = "pcre")]
 extern {
     pub static pcre_free: extern "C" unsafe fn(ptr: *mut c_void);
 

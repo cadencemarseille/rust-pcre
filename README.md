@@ -5,12 +5,7 @@
 
 ## Quick Start
 
-### General setup
-If you have not done so already, you need to set up your rustpkg path:
-
-    test ! -d ~/.rust && mkdir ~/.rust
-    cd ~/.rust
-    rustpkg init
+**Note:** If you see linker errors when running `make install`, you might need to export an environment variable, `PCRE_LIBDIR`, that points to the directory containing libpcre's import library.
 
 ### Debian
 

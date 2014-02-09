@@ -1,15 +1,19 @@
+ifndef PCRE_LIBDIR
+PCRE_LIBDIR := $(shell pcre-config --prefix)/lib
+endif
+
 .PHONY: install clean test doc
 
 install:
-	rustpkg install pcre
-	test -d bin || mkdir bin
-	rustc src/pcredemo/main.rs -o bin/pcredemo
+	test -d build || mkdir build
+	rustc --out-dir build pkg.rs && ./build/pkg
 
 clean:
-	$(RM) -r .rust bin build lib libtest~ libtest~.dSYM src/pcre/detail/native.rs
+	$(RM) -r .rust bin build lib libtest~ libtest~.dSYM
 
 test:
-	rustc --test src/pcre/test.rs -o libtest~ && ./libtest~
+	test -d build || mkdir build
+	rustc --test src/pcre/test.rs -o build/libtest~ -L lib -L "$(PCRE_LIBDIR)" && ./build/libtest~
 
 doc:
 	rustdoc --output doc -w html src/pcre/mod.rs

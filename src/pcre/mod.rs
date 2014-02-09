@@ -1,4 +1,4 @@
-// Copyright 2013 The rust-pcre authors.
+// Copyright 2014 The rust-pcre authors.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -6,11 +6,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[feature(link_args)];
-
+#[crate_id = "pcre#0.1"];
 #[crate_type = "lib"];
 
-extern mod extra = "extra#0.10-pre";
+extern mod extra;
 
 use extra::enum_set::{CLike, EnumSet};
 use extra::treemap::{TreeMap};

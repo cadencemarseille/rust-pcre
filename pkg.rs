@@ -1,4 +1,4 @@
-// Copyright 2013 The rust-pcre authors.
+// Copyright 2014 The rust-pcre authors.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -6,16 +6,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern mod extra;
 extern mod rustc;
 extern mod rustpkg;
 
-use extra::time;
 use rustc::driver::driver::host_triple;
-use rustpkg::api;
 use std::from_str::{from_str};
 use std::io;
-use std::io::BufferedReader;
 use std::io::fs::{mkdir, File};
 use std::option::{Option};
 use std::os;
@@ -55,11 +51,8 @@ fn cd(path: &Path) {
     }
 }
 
-fn do_install(args: ~[~str]) {
-    let sysroot_arg = args[1].clone();
-    let sysroot_path: Path = from_str(sysroot_arg).unwrap();
-
-    let pcre_libs = match os::getenv("PCRE_LIBS") {
+fn main() {
+    let pcre_libdir = match os::getenv("PCRE_LIBDIR") {
         None            => {
             let pcre_config_output = io::io_error::cond.trap(|e: io::IoError| {
                 match e.kind {
@@ -67,23 +60,20 @@ fn do_install(args: ~[~str]) {
                     _ => fail!("Package script error: Could not run `pcre-config`: {}", e.to_str())
                 }
             }).inside(|| -> run::ProcessOutput {
-                run::process_output("pcre-config", [~"--libs"]).expect("failed to exec `pcre-config`")
+                run::process_output("pcre-config", [~"--prefix"]).expect("failed to exec `pcre-config`")
             });
             if !pcre_config_output.status.success() {
-                fail!("Package script error: `pcre-config` failed");
+                fail!("Package script error: `pcre-config --prefix` failed");
             }
             let output_ptr = pcre_config_output.output.as_ptr();
             let output_len = pcre_config_output.output.len();
-            let libs_str = unsafe { str::raw::from_buf_len(output_ptr, output_len) };
-            os::setenv("PCRE_LIBS", libs_str);
-            libs_str
+            let prefix_str = unsafe { str::raw::from_buf_len(output_ptr, output_len) };
+            // `pcre-config` adds a newline to the end, which we need to trim away.
+            prefix_str.trim() + "/lib"
         },
-        Some(pcre_libs) => pcre_libs
+        Some(pcre_libdir) => pcre_libdir
     };
-    // `pcre-config` adds a newline to the end, which we need to trim away because newlines
-    // in link_args cause build issues.
-    let trimmed_pcre_libs = pcre_libs.trim();
-    debug!("PCRE_LIBS=\"{:s}\"", trimmed_pcre_libs);
+    let pcre_lib_path = Path::new(pcre_libdir);
 
     let workspace_path = os::getcwd();
 
@@ -108,10 +98,8 @@ fn do_install(args: ~[~str]) {
             Some(w) => w
         };
         write!(&mut w as &mut Writer, "\
-\\#[feature(globs)];
-\\#[feature(link_args)];
 use std::c_str::\\{CString\\};
-use std::libc::*;
+use std::libc::\\{c_char, c_int, c_uchar, c_void\\};
 use std::ptr;
 use std::vec;
 
@@ -119,7 +107,7 @@ type options = c_int;
 struct pcre;
 struct pcre_extra;
 
-\\#[link_args = \"{:s}\"]
+\\#[link(name = \"pcre\")]
 extern \\{
     static pcre_free: extern \"C\" fn(ptr: *c_void);
 
@@ -164,12 +152,12 @@ fn main () \\{
         \\});
     \\}
 \\}
-", trimmed_pcre_libs);
+");
     }
 
     // Compile and run `versioncheck.rs`
     cd(&out_path);
-    let rustc_run_output = run::process_output("rustc", [~"versioncheck.rs"]).expect("failed to exec `rustc`");
+    let rustc_run_output = run::process_output("rustc", [~"versioncheck.rs", ~"-L", pcre_lib_path.display().to_str()]).expect("failed to exec `rustc`");
     if !rustc_run_output.status.success() {
         println!("{}", str::from_utf8(rustc_run_output.output));
         println!("{}", str::from_utf8(rustc_run_output.error));
@@ -208,60 +196,22 @@ fn main () \\{
         fail!("Package script error: Found libpcre version {}, but at least version {} is required", version_str, min_required_version.to_str());
     }
 
-    let src_path = workspace_path.join("src");
-
-    // Output `src/pcre/detail/native.rs`
-    let detail_src_path = src_path.join("pcre").join("detail");
-    if !detail_src_path.exists() {
-        fail!("Package script error: Source directory `{}` does not exist.", detail_src_path.display());
+    // Create directories `bin` and `lib`
+    let bin_path = workspace_path.join("bin");
+    if !bin_path.exists() {
+        if !io::result(|| mkdir(&bin_path, 0x1FF)).is_ok() {
+            fail!("Package script error: Failed to create the `bin` directory");
+        }
     }
-    let native_rs_path = detail_src_path.join("native.rs");
-    let native_rs_in_path = detail_src_path.join("native.rs.in");
-    if !native_rs_in_path.exists() {
-        fail!("Package script error: Source file `{}` does not exist.", native_rs_in_path.display());
-    }
-    {
-        let r = match File::open(&native_rs_in_path) {
-            None    => fail!("Package script error: Failed to open `{}` for reading", native_rs_in_path.display()),
-            Some(r) => r
-        };
-        let mut w = match File::create(&native_rs_path) {
-            None    => fail!("Package script error: Failed to open `{}` for writing", native_rs_path.display()),
-            Some(w) => w
-        };
-        write!(&mut w as &mut Writer, "// -*- buffer-read-only: t -*-\n");
-        write!(&mut w as &mut Writer, "// Generated by {:s} on {:s}\n", args[0], time::now().rfc822());
-
-        let mut buffered_reader = BufferedReader::new(r);
-        for line in buffered_reader.lines() {
-            let substituted_line = str::replace(line, "@PCRE_LIBS@", trimmed_pcre_libs);
-            write!(&mut w as &mut Writer, "{:s}", substituted_line);
+    let lib_path = workspace_path.join("lib");
+    if !lib_path.exists() {
+        if !io::result(|| mkdir(&lib_path, 0x1FF)).is_ok() {
+            fail!("Package script error: Failed to create the `lib` directory");
         }
     }
 
-    let context = api::default_context(sysroot_path, api::default_workspace());
-    api::install_pkg(&context, workspace_path, ~"pcre", ~[]);
-}
+    // Compile libpcre-*.rlib
+    run::process_output("rustc", [~"--out-dir", lib_path.display().to_str(), ~"src/pcre/mod.rs", ~"-L", pcre_lib_path.display().to_str()]);
 
-fn do_configs(args: ~[~str]) {
-    drop(args);
-}
-
-fn main() {
-    let args = os::args();
-    let args_len = args.len();
-
-    if args_len < 2 {
-        fail!("Package script requires a directory where rustc libraries live as the first argument");
-    } else if args_len < 3 {
-        fail!("Package script requires a command as the second argument");
-    }
-
-    if args[2] == ~"install" {
-        do_install(args);
-    } else if args[2] == ~"configs" {
-        do_configs(args);
-    } else {
-        fail!("Package script error: Unsupported command `{}`", args[2]);
-    }
+    run::process_output("rustc", [~"-o", bin_path.join("pcredemo").display().to_str(), ~"src/pcredemo/main.rs", ~"-L", ~"lib", ~"-L", pcre_lib_path.display().to_str()]);
 }

@@ -12,6 +12,3 @@ configure
 /build
 /doc
 /lib
-/libtest~
-/src/pcre/detail/native.rs
-rustpkg_db.json
