@@ -53,14 +53,15 @@ fn cd(path: &Path) {
 fn main() {
     let pcre_libdir = match os::getenv("PCRE_LIBDIR") {
         None            => {
-            let pcre_config_output = io::io_error::cond.trap(|e: io::IoError| {
-                match e.kind {
-                    io::FileNotFound => fail!("Package script error: Could not run `pcre-config` because no such executable is in the executable search PATH. Make sure that you have installed a dev package for libpcre and/or make sure that libpcre's bindir is added to your PATH (currently \"{}\").", os::getenv("PATH").unwrap_or(~"")),
-                    _ => fail!("Package script error: Could not run `pcre-config`: {}", e.to_str())
-                }
-            }).inside(|| -> run::ProcessOutput {
-                run::process_output("pcre-config", [~"--prefix"]).expect("failed to exec `pcre-config`")
-            });
+            let pcre_config_output = match run::process_output("pcre-config", [~"--prefix"]) {
+                Err(e) => {
+                    match e.kind {
+                        io::FileNotFound => fail!("Package script error: Could not run `pcre-config` because no such executable is in the executable search PATH. Make sure that you have installed a dev package for libpcre and/or make sure that libpcre's bindir is added to your PATH (currently \"{}\").", os::getenv("PATH").unwrap_or(~"")),
+                        _ => fail!("Package script error: Could not run `pcre-config`: {}", e.to_str())
+                    }
+                },
+                Ok(pcre_config_output) => pcre_config_output
+            };
             if !pcre_config_output.status.success() {
                 fail!("Package script error: `pcre-config --prefix` failed");
             }
@@ -79,24 +80,24 @@ fn main() {
     // Check the version
     let target_build_path = workspace_path.join("build").join(host_triple());
     if !target_build_path.exists() {
-        if !io::result(|| mkdir(&target_build_path, 0x1FF)).is_ok() {
+        if mkdir(&target_build_path, 0x1FF).is_err() {
             fail!("Package script error: Failed to create target build directory `{}`", target_build_path.display());
         }
     }
     let out_path = target_build_path.join("pcre");
     if !out_path.exists() {
-        if !io::result(|| mkdir(&out_path, 0x1FF)).is_ok() {
+        if mkdir(&out_path, 0x1FF).is_err() {
             fail!("Package script error: Failed to create output directory `{}`", out_path.display());
         }
     }
 
     let versioncheck_rs_path = out_path.join("versioncheck.rs");
     {
-        let mut w = match File::create(&versioncheck_rs_path) {
-            None    => fail!("Package script error: Failed to open `{}` for writing", versioncheck_rs_path.display()),
-            Some(w) => w
+        let mut f = match File::create(&versioncheck_rs_path) {
+            Err(e) => fail!("Package script error: Failed to open `{}` for writing: {:s}", versioncheck_rs_path.display(), e.to_str()),
+            Ok(f) => f
         };
-        write!(&mut w as &mut Writer, "\
+        let contents = format!("\
 use std::c_str::\\{CString\\};
 use std::libc::\\{c_char, c_int, c_uchar, c_void\\};
 use std::ptr;
@@ -152,26 +153,35 @@ fn main () \\{
     \\}
 \\}
 ");
+        f.write_str(contents).map_err(|e| -> () {
+            fail!("Package script error: Failed to write to `{}`: {:s}", versioncheck_rs_path.display(), e.to_str());
+        });
     }
 
     // Compile and run `versioncheck.rs`
     cd(&out_path);
-    let rustc_run_output = run::process_output("rustc", [~"versioncheck.rs", ~"-L", pcre_lib_path.display().to_str()]).expect("failed to exec `rustc`");
-    if !rustc_run_output.status.success() {
-        println!("{}", str::from_utf8(rustc_run_output.output));
-        println!("{}", str::from_utf8(rustc_run_output.error));
-        fail!("Package script error: `rustc versioncheck.rs` failed: {}", rustc_run_output.status);
+    let rustc_output = match run::process_output("rustc", [~"versioncheck.rs", ~"-L", pcre_lib_path.display().to_str()]) {
+        Err(e) => fail!("Package script error: Failed to run `rustc`: {:s}", e.to_str()),
+        Ok(rustc_output) => rustc_output
+    };
+    if !rustc_output.status.success() {
+        println!("{}", str::from_utf8(rustc_output.output));
+        println!("{}", str::from_utf8(rustc_output.error));
+        fail!("Package script error: `rustc versioncheck.rs` failed: {}", rustc_output.status);
     }
-    let version_check_output = run::process_output("./versioncheck", []).expect("failed to exec `./versioncheck`");
-    if !version_check_output.status.success() {
-        println!("{}", str::from_utf8(version_check_output.output));
-        println!("{}", str::from_utf8(version_check_output.error));
-        fail!("versioncheck error: {}", version_check_output.status);
+    let versioncheck_output = match run::process_output("./versioncheck", []) {
+        Err(e) => fail!("Package script error: Failed to run `./versioncheck`: {:s}", e.to_str()),
+        Ok(versioncheck_output) => versioncheck_output
+    };
+    if !versioncheck_output.status.success() {
+        println!("{}", str::from_utf8(versioncheck_output.output));
+        println!("{}", str::from_utf8(versioncheck_output.error));
+        fail!("versioncheck error: {}", versioncheck_output.status);
     }
     cd(&workspace_path);
 
-    let output_ptr = version_check_output.output.as_ptr();
-    let output_len = version_check_output.output.len();
+    let output_ptr = versioncheck_output.output.as_ptr();
+    let output_len = versioncheck_output.output.len();
     let output_str = unsafe { str::raw::from_buf_len(output_ptr, output_len) };
     debug!("output_str = `{}`", output_str);
 
@@ -198,19 +208,37 @@ fn main () \\{
     // Create directories `bin` and `lib`
     let bin_path = workspace_path.join("bin");
     if !bin_path.exists() {
-        if !io::result(|| mkdir(&bin_path, 0x1FF)).is_ok() {
+        if mkdir(&bin_path, 0x1FF).is_err() {
             fail!("Package script error: Failed to create the `bin` directory");
         }
     }
     let lib_path = workspace_path.join("lib");
     if !lib_path.exists() {
-        if !io::result(|| mkdir(&lib_path, 0x1FF)).is_ok() {
+        if mkdir(&lib_path, 0x1FF).is_err() {
             fail!("Package script error: Failed to create the `lib` directory");
         }
     }
 
     // Compile libpcre-*.rlib
-    run::process_output("rustc", [~"--out-dir", lib_path.display().to_str(), ~"src/pcre/mod.rs", ~"-L", pcre_lib_path.display().to_str()]);
+    match run::process_output("rustc", [~"--out-dir", lib_path.display().to_str(), ~"src/pcre/mod.rs", ~"-L", pcre_lib_path.display().to_str()]) {
+        Err(e) => fail!("Package script error: Failed to run `rustc`: {:s}", e.to_str()),
+        Ok(rustc_output) => {
+            if !rustc_output.status.success() {
+                println!("{}", str::from_utf8(rustc_output.output));
+                println!("{}", str::from_utf8(rustc_output.error));
+                fail!("Package script error: `rustc src/pcre/mod.rs` failed: {}", rustc_output.status);
+            }
+        }
+    }
 
-    run::process_output("rustc", [~"-o", bin_path.join("pcredemo").display().to_str(), ~"src/pcredemo/main.rs", ~"-L", ~"lib", ~"-L", pcre_lib_path.display().to_str()]);
+    match run::process_output("rustc", [~"-o", bin_path.join("pcredemo").display().to_str(), ~"src/pcredemo/main.rs", ~"-L", ~"lib", ~"-L", pcre_lib_path.display().to_str()]) {
+        Err(e) => fail!("Package script error: Failed to run `rustc`: {:s}", e.to_str()),
+        Ok(rustc_output) => {
+            if !rustc_output.status.success() {
+                println!("{}", str::from_utf8(rustc_output.output));
+                println!("{}", str::from_utf8(rustc_output.error));
+                fail!("Package script error: `rustc src/pcredemo/main.rs` failed: {}", rustc_output.status);
+            }
+        }
+    }
 }
