@@ -1,4 +1,4 @@
-// Copyright 2013 The rust-pcre authors.
+// Copyright 2014 The rust-pcre authors.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -8,17 +8,19 @@
 
 // This is a port of the pcre project's `pcredemo` sample using rust-pcre bindings.
 
+extern mod collections;
 extern mod extra;
+extern mod getopts;
 extern mod pcre;
 
+use collections::treemap::{TreeMap};
 use extra::enum_set::{EnumSet};
-use extra::getopts::{Opt, getopts, optflag};
-use extra::treemap::{TreeMap};
+use getopts::{OptGroup, getopts, optflag};
 use pcre::{CompileOption, Match, Pcre, pcre_version};
 use std::io::stdio::stderr;
 use std::os;
 
-fn print_usage(program: &str, opts: &[Opt]) {
+fn print_usage(program: &str, opts: &[OptGroup]) {
     drop(opts);
     println!("Usage: {} [options] pattern subject", program);
     println!("Options:");
@@ -59,10 +61,9 @@ fn main() {
     let program = args[0].clone();
 
     let opts = ~[
-        optflag("g"),
-        optflag("h"),
-        optflag("help"),
-        optflag("version")
+        optflag("g", "", "find all matches"),
+        optflag("h", "help", "print usage and exit"),
+        optflag("", "version", "print version information and exit")
     ];
 
     let opt_matches = match getopts(args.tail(), opts) {

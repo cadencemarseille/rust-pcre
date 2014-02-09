@@ -9,10 +9,11 @@
 #[crate_id = "pcre#0.1"];
 #[crate_type = "lib"];
 
+extern mod collections;
 extern mod extra;
 
+use collections::treemap::{TreeMap};
 use extra::enum_set::{CLike, EnumSet};
-use extra::treemap::{TreeMap};
 use std::c_str;
 use std::libc::{c_char, c_int, c_uchar, c_void};
 use std::option::{Option};
