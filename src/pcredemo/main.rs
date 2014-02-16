@@ -8,10 +8,10 @@
 
 // This is a port of the pcre project's `pcredemo` sample using rust-pcre bindings.
 
-extern mod collections;
-extern mod extra;
-extern mod getopts;
-extern mod pcre;
+extern crate collections;
+extern crate extra;
+extern crate getopts;
+extern crate pcre;
 
 use collections::treemap::{TreeMap};
 use extra::enum_set::{EnumSet};

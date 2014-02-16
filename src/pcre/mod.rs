@@ -9,8 +9,8 @@
 #[crate_id = "pcre#0.1"];
 #[crate_type = "lib"];
 
-extern mod collections;
-extern mod extra;
+extern crate collections;
+extern crate extra;
 
 use collections::treemap::{TreeMap};
 use extra::enum_set::{CLike, EnumSet};
