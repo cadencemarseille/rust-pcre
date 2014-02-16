@@ -101,6 +101,7 @@ fn main() {
 use std::c_str::\\{CString\\};
 use std::libc::\\{c_char, c_int, c_uchar, c_void\\};
 use std::ptr;
+use std::ptr::\\{RawPtr\\};
 use std::vec;
 
 type options = c_int;
@@ -126,8 +127,8 @@ fn main () \\{
             let mut err: *c_char = ptr::null();
             let mut erroffset: c_int = 0;
             let code = pcre_compile(pattern_c_str, 0, &mut err, &mut erroffset, ptr::null());
-            if ptr::is_null(code) \\{
-                if ptr::is_null(code) \\{
+            if code.is_null() \\{
+                if code.is_null() \\{
                     let err_cstring = CString::new(err, false);
                     match err_cstring.as_str() \\{
                         None          => fail!(\"pcre_compile() failed at offset \\{\\}\", erroffset as uint),
@@ -135,7 +136,7 @@ fn main () \\{
                     \\}
                 \\}
             \\}
-            assert!(ptr::is_not_null(code));
+            assert!(code.is_not_null());
 
             let ovecsize = 1 * 3;
             let mut ovector: ~[c_int] = vec::from_elem(ovecsize, 0 as c_int);

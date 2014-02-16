@@ -1,4 +1,4 @@
-// Copyright 2013 The rust-pcre authors.
+// Copyright 2014 The rust-pcre authors.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -10,6 +10,7 @@ use extra::enum_set::{EnumSet};
 use std::c_str::{CString};
 use std::libc::{c_int, c_char, c_void, c_uchar};
 use std::ptr;
+use std::ptr::{RawPtr};
 use std::result::{Result};
 
 mod native;
@@ -34,13 +35,13 @@ pub static PCRE_INFO_NAMECOUNT: fullinfo_field = 8;
 pub static PCRE_INFO_NAMETABLE: fullinfo_field = 9;
 
 pub unsafe fn pcre_compile(pattern: *c_char, options: &EnumSet<::CompileOption>, tableptr: *c_uchar) -> Result<*mut pcre, (Option<~str>, c_int)> {
-    assert!(ptr::is_not_null(pattern));
+    assert!(pattern.is_not_null());
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as compile_options)) | PCRE_UTF8 | PCRE_NO_UTF8_CHECK;
     let mut err: *c_char = ptr::null();
     let mut erroffset: c_int = 0;
     let code = native::pcre_compile(pattern, converted_options, &mut err, &mut erroffset, tableptr);
 
-    if ptr::is_null(code) {
+    if code.is_null() {
         // "Otherwise, if  compilation  of  a  pattern fails, pcre_compile() returns
         // NULL, and sets the variable pointed to by errptr to point to a textual
         // error message. This is a static string that is part of the library. You
@@ -53,7 +54,7 @@ pub unsafe fn pcre_compile(pattern: *c_char, options: &EnumSet<::CompileOption>,
             Some(err_str) => Err((Some(err_str.to_owned()), erroffset))
         }
     } else {
-        assert!(ptr::is_not_null(code));
+        assert!(code.is_not_null());
         assert_eq!(erroffset, 0);
 
         Ok(code)
@@ -61,7 +62,7 @@ pub unsafe fn pcre_compile(pattern: *c_char, options: &EnumSet<::CompileOption>,
 }
 
 pub unsafe fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: &EnumSet<::ExecOption>, ovector: *mut c_int, ovecsize: c_int) -> c_int {
-    assert!(ptr::is_not_null(code));
+    assert!(code.is_not_null());
     assert!(ovecsize >= 0 && ovecsize % 3 == 0);
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as compile_options)) | PCRE_NO_UTF8_CHECK;
     let rc = native::pcre_exec(code, extra, subject, length, startoffset, converted_options, ovector, ovecsize);
@@ -83,7 +84,7 @@ pub unsafe fn pcre_free_study(extra: *mut pcre_extra) {
 }
 
 pub unsafe fn pcre_fullinfo(code: *pcre, extra: *pcre_extra, what: fullinfo_field, where: *mut c_void) {
-    assert!(ptr::is_not_null(code));
+    assert!(code.is_not_null());
     let rc = native::pcre_fullinfo(code, extra, what, where);
     if rc < 0 && rc != PCRE_ERROR_NULL {
         fail!("pcre_fullinfo");
@@ -91,7 +92,7 @@ pub unsafe fn pcre_fullinfo(code: *pcre, extra: *pcre_extra, what: fullinfo_fiel
 }
 
 pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
-    assert!(ptr::is_not_null(code));
+    assert!(code.is_not_null());
     let curr_refcount = native::pcre_refcount(code, 0);
     if curr_refcount + adjust < 0 {
         fail!("refcount underflow");
@@ -102,7 +103,7 @@ pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
 }
 
 pub unsafe fn pcre_study(code: *::detail::pcre, options: &EnumSet<::StudyOption>) -> *mut ::detail::pcre_extra {
-    assert!(ptr::is_not_null(code));
+    assert!(code.is_not_null());
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as study_options));
     let mut err: *c_char = ptr::null();
     let extra = native::pcre_study(code, converted_options, &mut err);
@@ -111,7 +112,7 @@ pub unsafe fn pcre_study(code: *::detail::pcre, options: &EnumSet<::StudyOption>
     // set to NULL. Otherwise it is set to point to a textual error message. This is
     // a static string that is part of the library. You must not try to free it."
     // http://pcre.org/pcre.txt
-    if ptr::is_not_null(err) {
+    if err.is_not_null() {
         let err_cstring = CString::new(err, false);
         match err_cstring.as_str() {
             None          => error!("pcre_study() failed"),
@@ -119,7 +120,7 @@ pub unsafe fn pcre_study(code: *::detail::pcre, options: &EnumSet<::StudyOption>
         }
         fail!("pcre_study");
     }
-    assert!(ptr::is_null(err));
+    assert!(err.is_null());
 
     extra
 }

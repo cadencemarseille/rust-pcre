@@ -297,7 +297,7 @@ impl Pcre {
                     }),
                     Ok(mut_code) => {
                         let code = mut_code as *detail::pcre;
-                        assert!(ptr::is_not_null(code));
+                        assert!(code.is_not_null());
                         // Take a reference.
                         detail::pcre_refcount(code as *mut detail::pcre, 1);
 
@@ -471,8 +471,8 @@ impl Pcre {
 
             let mut i = 0u;
             while i < name_count {
-                let n: uint = (ptr::read_ptr(tabptr) as uint << 8) | (ptr::read_ptr(ptr::offset(tabptr, 1)) as uint);
-                let name_cstring = c_str::CString::new(ptr::offset(tabptr, 2) as *c_char, false);
+                let n: uint = (ptr::read(tabptr) as uint << 8) | (ptr::read(tabptr.offset(1)) as uint);
+                let name_cstring = c_str::CString::new(tabptr.offset(2) as *c_char, false);
                 let name: ~str = name_cstring.as_str().unwrap().to_owned();
                 // TODO Avoid the double lookup.
                 // https://github.com/mozilla/rust/issues/9068
@@ -481,7 +481,7 @@ impl Pcre {
                 } else {
                     name_table.find_mut(&name).unwrap().push(n);
                 }
-                tabptr = ptr::offset(tabptr, name_entry_size as int);
+                tabptr = tabptr.offset(name_entry_size as int);
                 i += 1;
             }
 
@@ -522,7 +522,7 @@ impl Pcre {
 
                 let extra = detail::pcre_study(self.code, options) as *detail::pcre_extra;
                 self.extra = extra;
-                ptr::is_not_null(extra)
+                extra.is_not_null()
             }
         }
     }
