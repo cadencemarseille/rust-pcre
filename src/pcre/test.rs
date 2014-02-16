@@ -1,4 +1,4 @@
-extern mod pcre;
+extern crate pcre;
 
 use pcre::Pcre;
 
