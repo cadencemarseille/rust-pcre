@@ -15,6 +15,7 @@ extern crate extra;
 use collections::treemap::{TreeMap};
 use extra::enum_set::{CLike, EnumSet};
 use std::c_str;
+use std::c_str::{CString};
 use std::libc::{c_char, c_int, c_uchar, c_void};
 use std::option::{Option};
 use std::ptr;
@@ -610,7 +611,10 @@ impl<'a> Iterator<Match<'a>> for MatchIterator<'a> {
     #[inline]
     fn next(&mut self) -> Option<Match<'a>> {
         unsafe {
-            self.subject_cstring.with_ref(|subject_c_str| -> Option<Match<'a>> {
+            // Create a new, non-owning copy of `self.subject_cstring` to avoid
+            // error: closure requires unique access to `self` but `self.subject_cstring` is already borrowed
+            let subject_cstring_copy = self.subject_cstring.with_ref(|subject_c_str| CString::new(subject_c_str, false));
+            subject_cstring_copy.with_ref(|subject_c_str| -> Option<Match<'a>> {
                 let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, &self.options, self.ovector.as_mut_ptr(), self.ovector.len() as c_int);
                 if rc >= 0 {
                     // Update the iterator state.
