@@ -6,9 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use extra::enum_set::{EnumSet};
+use collections::enum_set::{EnumSet};
 use std::c_str::{CString};
-use std::libc::{c_int, c_char, c_void, c_uchar};
+use std::libc::{c_int, c_char, c_void, c_uchar, c_ulong, };
 use std::ptr;
 use std::ptr::{RawPtr};
 use std::result::{Result};
@@ -20,8 +20,22 @@ pub type exec_options = c_int;
 pub type fullinfo_field = c_int;
 pub struct pcre;
 pub type pcre_error = c_int;
-pub struct pcre_extra;
+//pub struct pcre_extra;
+
+pub struct pcre_extra {
+    flags: c_ulong,
+    study_data: *mut c_void,
+    match_limit: c_ulong,
+    callout_data: *mut c_void,
+    tables: *c_uchar,
+    match_limit_recursion: c_ulong,
+    mark: *mut *mut c_uchar,
+    executable_jit: *mut c_void,
+}
+
 pub type study_options = c_int;
+
+pub type extra_options = c_int;
 
 pub static PCRE_UTF8: c_int = 0x00000800;
 pub static PCRE_NO_UTF8_CHECK: c_int = 0x00002000;

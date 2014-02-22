@@ -9,12 +9,12 @@
 // This is a port of the pcre project's `pcredemo` sample using rust-pcre bindings.
 
 extern crate collections;
-extern crate extra;
+//extern crate extra;
 extern crate getopts;
 extern crate pcre;
 
 use collections::treemap::{TreeMap};
-use extra::enum_set::{EnumSet};
+use collections::enum_set::{EnumSet};
 use getopts::{OptGroup, getopts, optflag};
 use pcre::{CompileOption, Match, Pcre, pcre_version};
 use std::io::stdio::stderr;
