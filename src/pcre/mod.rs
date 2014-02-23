@@ -10,10 +10,9 @@
 #[crate_type = "lib"];
 
 extern crate collections;
-extern crate extra;
 
 use collections::treemap::{TreeMap};
-use extra::enum_set::{CLike, EnumSet};
+use collections::enum_set::{CLike, EnumSet};
 use std::c_str;
 use std::c_str::{CString};
 use std::libc::{c_char, c_int, c_uchar, c_void};
@@ -76,6 +75,17 @@ pub enum ExecOption {
     ExecNotEmptyAtStart = 0x10000000
 }
 
+#[deriving(Clone)]
+pub enum ExtraOption {
+    ExtraStudyData = 0x0001,
+    ExtraMatchLimit = 0x0002,
+    ExtraCalloutData = 0x0004,
+    ExtraTables = 0x0008,
+    ExtraMatchLimitRecursion = 0x0010,
+    ExtraMark = 0x0020,
+    ExtraExecutableJIT = 0x0040
+}
+
 pub static ExecPartial: ExecOption = ExecPartialSoft;
 pub static ExecNoStartOptimize: ExecOption = ExecNoStartOptimise;
 
@@ -92,9 +102,12 @@ pub struct Pcre {
 
     priv code: *detail::pcre,
 
-    priv extra: *detail::pcre_extra,
+    priv extra: *mut detail::pcre_extra,
 
-    priv capture_count_: c_int
+    priv capture_count_: c_int,
+
+    /// a spot to place any matched marks
+    priv mark : *mut c_uchar
 
 }
 
@@ -251,6 +264,33 @@ impl CLike for ExecOption {
     }
 }
 
+impl CLike for ExtraOption {
+    fn from_uint(n: uint) -> ExtraOption {
+        match n {
+            1u => ExtraStudyData,
+            2u => ExtraMatchLimit,
+            3u => ExtraCalloutData,
+            4u => ExtraTables,
+            5u => ExtraMatchLimitRecursion,
+            6u => ExtraMark,
+            7u => ExtraExecutableJIT,
+            _ => fail!("unknown ExtraOption number {:u}", n)
+        }
+    }
+
+    fn to_uint(&self) -> uint {
+        match *self {
+            ExtraStudyData => 1u,
+            ExtraMatchLimit => 2u,
+            ExtraCalloutData => 3u,
+            ExtraTables => 4u,
+            ExtraMatchLimitRecursion => 5u,
+            ExtraMark => 6u,
+            ExtraExecutableJIT => 7u
+        }
+    }
+}
+
 impl CompilationError {
     pub fn message(&self) -> Option<~str> {
         self.opt_err.clone()
@@ -302,15 +342,17 @@ impl Pcre {
                         // Take a reference.
                         detail::pcre_refcount(code as *mut detail::pcre, 1);
 
-                        let extra: *detail::pcre_extra = ptr::null();
+                        let extra: *mut detail::pcre_extra = ptr::mut_null();
 
                         let mut capture_count: c_int = 0;
-                        detail::pcre_fullinfo(code, extra, detail::PCRE_INFO_CAPTURECOUNT, &mut capture_count as *mut c_int as *mut c_void);
+                        detail::pcre_fullinfo(code, extra as *detail::pcre_extra, detail::PCRE_INFO_CAPTURECOUNT, 
+                            &mut capture_count as *mut c_int as *mut c_void);
 
                         Ok(Pcre {
                             code: code,
                             extra: extra,
-                            capture_count_: capture_count
+                            capture_count_: capture_count,
+                            mark : ptr::mut_null()
                         })
                     }
                 }
@@ -396,7 +438,7 @@ impl Pcre {
 
         unsafe {
             subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
-                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, ovector.as_mut_ptr(), ovecsize as c_int);
+                let rc = detail::pcre_exec(self.code, self.extra as *detail::pcre_extra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, ovector.as_mut_ptr(), ovecsize as c_int);
                 if rc >= 0 {
                     Some(Match {
                         subject: subject,
@@ -434,7 +476,7 @@ impl Pcre {
             let ovecsize = (self.capture_count_ + 1) * 3;
             MatchIterator {
                 code: { detail::pcre_refcount(self.code as *mut detail::pcre, 1); self.code },
-                extra: self.extra,
+                extra: self.extra as *detail::pcre_extra,
                 capture_count: self.capture_count_,
                 subject: subject,
                 subject_cstring: subject.to_c_str_unchecked(), // the subject string can contain NUL bytes
@@ -449,7 +491,7 @@ impl Pcre {
     pub fn name_count(&self) -> uint {
         unsafe {
             let mut name_count: c_int = 0;
-            detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
+            detail::pcre_fullinfo(self.code, self.extra as *detail::pcre_extra, detail::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
             name_count as uint
         }
     }
@@ -464,9 +506,9 @@ impl Pcre {
         unsafe {
             let name_count = self.name_count();
             let mut tabptr: *c_uchar = ptr::null();
-            detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *c_uchar as *mut c_void);
+            detail::pcre_fullinfo(self.code, self.extra as *detail::pcre_extra, detail::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *c_uchar as *mut c_void);
             let mut name_entry_size: c_int = 0;
-            detail::pcre_fullinfo(self.code, self.extra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
+            detail::pcre_fullinfo(self.code, self.extra as *detail::pcre_extra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
 
             let mut name_table: TreeMap<~str, ~[uint]> = TreeMap::new();
 
@@ -519,12 +561,49 @@ impl Pcre {
             } else {
                 // Free any current study data.
                 detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
-                self.extra = ptr::null();
+                self.extra = ptr::mut_null();
 
-                let extra = detail::pcre_study(self.code, options) as *detail::pcre_extra;
+                let extra = detail::pcre_study(self.code, options);
                 self.extra = extra;
                 extra.is_not_null()
             }
+        }
+    }
+
+    /// Returns the mark from pcre if it was set in the extra options
+    /// 
+    /// # Return value
+    /// `Some(str)` if pcre returned a value for the mark
+    /// `None` if either there was no mark in the match or the Extra option was not set to begin with 
+    pub fn get_mark(&self) -> Option<~str> {
+        unsafe {
+            if self.mark.is_not_null() {
+                return Some(std::str::raw::from_c_str(self.mark as *i8));
+            }
+            None
+        }
+    }
+
+    /// Sets the extra options on this pcre. Note that only mark is fully implemented right now.
+    ///
+    /// # Argument
+    /// * `options` - Extra Options. See `man pcreapi`  for more info about each option
+    ///   (search for "Extra data for pcre_exec")
+    ///
+    /// # Return value
+    /// `false` if this pcre has not been studied yet. Call a study() function before calling this one
+    /// `true` if the function was successful
+    pub fn set_extra_options(&mut self, options: &EnumSet<ExtraOption>) -> bool {
+        unsafe {
+            if self.extra.is_null() {
+                return false;
+            }
+            if options.contains_elem(ExtraMark) {
+                (*self.extra).mark = &mut self.mark as *mut *mut u8;
+            }
+            (*self.extra).flags |= options.iter().fold(0, 
+                |converted_options, option| converted_options | (option as c_int)) as u64;
+            true
         }
     }
 }
@@ -536,7 +615,7 @@ impl Drop for Pcre {
                 detail::pcre_free_study(self.extra as *mut detail::pcre_extra);
                 detail::pcre_free(self.code as *mut detail::pcre as *mut c_void);
             }
-            self.extra = ptr::null();
+            self.extra = ptr::mut_null();
             self.code = ptr::null();
         }
     }
