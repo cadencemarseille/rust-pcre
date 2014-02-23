@@ -13,7 +13,7 @@ clean:
 
 test:
 	test -d build || mkdir build
-	rustc --test src/pcre/test.rs -o build/libtest~ -L lib -L $(PCRE_LIBDIR) && ./build/libtest~
+	rustc --test src/pcre/test.rs -o build/libtest~ -L lib -L "$(PCRE_LIBDIR)" && ./build/libtest~
 
 doc:
 	rustdoc --output doc -w html src/pcre/mod.rs
