@@ -10,7 +10,6 @@
 #[crate_type = "lib"];
 
 extern crate collections;
-//extern crate extra;
 
 use collections::treemap::{TreeMap};
 use collections::enum_set::{CLike, EnumSet};

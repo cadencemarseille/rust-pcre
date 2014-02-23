@@ -12,7 +12,7 @@ clean:
 	$(RM) -r .rust bin build lib libtest~ libtest~.dSYM
 
 test:
-	test -d build || mkdir build && echo $(PCRE_LIBDIR)
+	test -d build || mkdir build
 	rustc --test src/pcre/test.rs -o build/libtest~ -L lib -L $(PCRE_LIBDIR) && ./build/libtest~
 
 doc:
