@@ -301,11 +301,11 @@ impl CompilationError {
     }
 }
 
-impl ToStr for CompilationError {
-    fn to_str(&self) -> ~str {
+impl std::fmt::Show for CompilationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self.opt_err {
-            None => format!("compilation failed at offset {:u}", self.erroffset as uint),
-            Some(ref s) => format!("compilation failed at offset {:u}: {:s}", self.erroffset as uint, s.as_slice())
+            None => write!(f.buf, "compilation failed at offset {:u}", self.erroffset as uint),
+            Some(ref s) => write!(f.buf, "compilation failed at offset {:u}: {:s}", self.erroffset as uint, s.as_slice())
         }
     }
 }
