@@ -106,8 +106,8 @@ pub struct Pcre {
 
     priv capture_count_: c_int,
 
-    /// a spot to place any matched marks
-    priv mark : *mut c_uchar
+    /// A spot to place any matched marks
+    priv mark: *mut c_uchar
 
 }
 
@@ -372,6 +372,20 @@ impl Pcre {
         self.capture_count_ as uint
     }
 
+    /// Returns the mark from pcre if it was set in the extra options.
+    ///
+    /// # Return value
+    /// `Some(str)` if pcre returned a value for the mark.
+    /// `None` if either there was no mark in the match or the `ExtraMark` option was not set.
+    pub fn mark(&self) -> Option<~str> {
+        unsafe {
+            if self.mark.is_not_null() {
+                return Some(std::str::raw::from_c_str(self.mark as *i8));
+            }
+            None
+        }
+    }
+
     /// Matches the compiled regular expression against a given subject string `subject`.
     /// If no match is found, then `None` is returned. Otherwise, a `Match` object is returned
     /// which provides access to the captured substrings as slices of the subject string.
@@ -570,29 +584,15 @@ impl Pcre {
         }
     }
 
-    /// Returns the mark from pcre if it was set in the extra options
-    /// 
-    /// # Return value
-    /// `Some(str)` if pcre returned a value for the mark
-    /// `None` if either there was no mark in the match or the Extra option was not set to begin with 
-    pub fn get_mark(&self) -> Option<~str> {
-        unsafe {
-            if self.mark.is_not_null() {
-                return Some(std::str::raw::from_c_str(self.mark as *i8));
-            }
-            None
-        }
-    }
-
     /// Sets the extra options on this pcre. Note that only mark is fully implemented right now.
     ///
     /// # Argument
-    /// * `options` - Extra Options. See `man pcreapi`  for more info about each option
+    /// * `options` - Extra options. See `man pcreapi` for more info about each option
     ///   (search for "Extra data for pcre_exec")
     ///
     /// # Return value
-    /// `false` if this pcre has not been studied yet. Call a study() function before calling this one
-    /// `true` if the function was successful
+    /// `false` if this pcre has not been studied yet. Call a study() method before calling this method.
+    /// `true` if successful.
     pub fn set_extra_options(&mut self, options: &EnumSet<ExtraOption>) -> bool {
         unsafe {
             if self.extra.is_null() {

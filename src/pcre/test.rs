@@ -129,7 +129,7 @@ fn test_extra_mark() {
     let mut re = Pcre::compile_with_options(pattern, &compile_options).unwrap();
 
     // first try to get the mark from the compile to make sure it fails
-    assert_eq!(re.get_mark(), None);
+    assert_eq!(re.mark(), None);
 
     let mut study_options: EnumSet<StudyOption> = EnumSet::empty();
     study_options.add(pcre::StudyJitCompile);
@@ -139,7 +139,7 @@ fn test_extra_mark() {
 
     // Now after studying, we still should not be able to get the mark (since we still need 
     // to set the option in the extra AND execute it)
-    assert_eq!(re.get_mark(), None);
+    assert_eq!(re.mark(), None);
 
     // set that I am using the extra mark field
     let mut extra_options: EnumSet<ExtraOption> = EnumSet::empty();
@@ -149,7 +149,7 @@ fn test_extra_mark() {
     assert!(extra);
 
     // We still haven't run the pcre_exec yet so get mark should be None still
-    assert_eq!(re.get_mark(), None);
+    assert_eq!(re.mark(), None);
 
     // Now execute and we should be able to get the mark
     let opt_m1 = re.exec(subject1);
@@ -160,7 +160,7 @@ fn test_extra_mark() {
     assert_eq!(m1.group(0), "XY");
 
     // and the marked value should be A
-    let mark1 = re.get_mark();
+    let mark1 = re.mark();
     assert!(mark1.is_some());
     assert_eq!(mark1.unwrap(), ~"A");
 
@@ -172,5 +172,5 @@ fn test_extra_mark() {
     assert_eq!(m2.group(0), "XZ");
 
     // and the marked value should be B
-    assert_eq!(re.get_mark().unwrap(), ~"B");
+    assert_eq!(re.mark().unwrap(), ~"B");
 }
