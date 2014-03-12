@@ -18,6 +18,7 @@ use std::option::{Option};
 use std::os;
 use std::str;
 
+#[deriving(Eq)]
 struct Version {
     major: uint,
     minor: uint
