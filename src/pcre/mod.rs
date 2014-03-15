@@ -49,14 +49,6 @@ pub enum CompileOption {
 }
 
 #[deriving(Clone)]
-pub enum StudyOption {
-    StudyJitCompile = 0x0001,
-    StudyJitPartialSoftCompile = 0x0002,
-    StudyJitPartialHardCompile = 0x0004,
-    StudyExtraNeeded = 0x0008
-}
-
-#[deriving(Clone)]
 pub enum ExecOption {
     ExecAnchored = 0x00000010,
     ExecNotBol = 0x00000080,
@@ -75,6 +67,9 @@ pub enum ExecOption {
     ExecNotEmptyAtStart = 0x10000000
 }
 
+pub static ExecPartial: ExecOption = ExecPartialSoft;
+pub static ExecNoStartOptimize: ExecOption = ExecNoStartOptimise;
+
 #[deriving(Clone)]
 pub enum ExtraOption {
     ExtraStudyData = 0x0001,
@@ -83,11 +78,16 @@ pub enum ExtraOption {
     ExtraTables = 0x0008,
     ExtraMatchLimitRecursion = 0x0010,
     ExtraMark = 0x0020,
-    ExtraExecutableJIT = 0x0040
+    ExtraExecutableJit = 0x0040
 }
 
-pub static ExecPartial: ExecOption = ExecPartialSoft;
-pub static ExecNoStartOptimize: ExecOption = ExecNoStartOptimise;
+#[deriving(Clone)]
+pub enum StudyOption {
+    StudyJitCompile = 0x0001,
+    StudyJitPartialSoftCompile = 0x0002,
+    StudyJitPartialHardCompile = 0x0004,
+    StudyExtraNeeded = 0x0008
+}
 
 pub struct CompilationError {
 
@@ -200,27 +200,6 @@ impl CLike for CompileOption {
     }
 }
 
-impl CLike for StudyOption {
-    fn from_uint(n: uint) -> StudyOption {
-        match n {
-            1u => StudyJitCompile,
-            2u => StudyJitPartialSoftCompile,
-            3u => StudyJitPartialHardCompile,
-            4u => StudyExtraNeeded,
-            _ => fail!("unknown StudyOption number {:u}", n)
-        }
-    }
-
-    fn to_uint(&self) -> uint {
-        match *self {
-            StudyJitCompile => 1u,
-            StudyJitPartialSoftCompile => 2u,
-            StudyJitPartialHardCompile => 3u,
-            StudyExtraNeeded => 4u
-        }
-    }
-}
-
 impl CLike for ExecOption {
     fn from_uint(n: uint) -> ExecOption {
         match n {
@@ -273,7 +252,7 @@ impl CLike for ExtraOption {
             4u => ExtraTables,
             5u => ExtraMatchLimitRecursion,
             6u => ExtraMark,
-            7u => ExtraExecutableJIT,
+            7u => ExtraExecutableJit,
             _ => fail!("unknown ExtraOption number {:u}", n)
         }
     }
@@ -286,7 +265,28 @@ impl CLike for ExtraOption {
             ExtraTables => 4u,
             ExtraMatchLimitRecursion => 5u,
             ExtraMark => 6u,
-            ExtraExecutableJIT => 7u
+            ExtraExecutableJit => 7u
+        }
+    }
+}
+
+impl CLike for StudyOption {
+    fn from_uint(n: uint) -> StudyOption {
+        match n {
+            1u => StudyJitCompile,
+            2u => StudyJitPartialSoftCompile,
+            3u => StudyJitPartialHardCompile,
+            4u => StudyExtraNeeded,
+            _ => fail!("unknown StudyOption number {:u}", n)
+        }
+    }
+
+    fn to_uint(&self) -> uint {
+        match *self {
+            StudyJitCompile => 1u,
+            StudyJitPartialSoftCompile => 2u,
+            StudyJitPartialHardCompile => 3u,
+            StudyExtraNeeded => 4u
         }
     }
 }
