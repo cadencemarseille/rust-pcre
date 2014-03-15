@@ -132,7 +132,7 @@ fn test_extra_mark() {
     assert_eq!(re.mark(), None);
 
     let mut study_options: EnumSet<StudyOption> = EnumSet::empty();
-    study_options.add(pcre::StudyExtraNeeded);
+    //study_options.add(pcre::StudyExtraNeeded);
     study_options.add(pcre::StudyJitCompile);
     let study = re.study_with_options(&study_options);
     // Double check to make sure the study worked
