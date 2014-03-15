@@ -8,7 +8,7 @@
 
 use collections::enum_set::{EnumSet};
 use std::c_str::{CString};
-use std::libc::{c_char, c_int, c_uchar, c_ulong, c_void};
+use std::libc::{c_char, c_int, c_uchar, c_void};
 use std::ptr;
 use std::ptr::{RawPtr};
 use std::result::{Result};
@@ -20,17 +20,6 @@ pub type exec_options = c_int;
 pub type fullinfo_field = c_int;
 pub struct pcre;
 pub type pcre_error = c_int;
-
-pub struct pcre_extra {
-    flags: c_ulong,
-    study_data: *mut c_void,
-    match_limit: c_ulong,
-    callout_data: *mut c_void,
-    tables: *c_uchar,
-    match_limit_recursion: c_ulong,
-    mark: *mut *mut c_uchar,
-    executable_jit: *mut c_void,
-}
 
 pub type study_options = c_int;
 
@@ -74,7 +63,7 @@ pub unsafe fn pcre_compile(pattern: *c_char, options: &EnumSet<::CompileOption>,
     }
 }
 
-pub unsafe fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: &EnumSet<::ExecOption>, ovector: *mut c_int, ovecsize: c_int) -> c_int {
+pub unsafe fn pcre_exec(code: *pcre, extra: *::PcreExtra, subject: *c_char, length: c_int, startoffset: c_int, options: &EnumSet<::ExecOption>, ovector: *mut c_int, ovecsize: c_int) -> c_int {
     assert!(code.is_not_null());
     assert!(ovecsize >= 0 && ovecsize % 3 == 0);
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as compile_options)) | PCRE_NO_UTF8_CHECK;
@@ -92,11 +81,11 @@ pub unsafe fn pcre_free(ptr: *mut c_void) {
     native::pcre_free(ptr);
 }
 
-pub unsafe fn pcre_free_study(extra: *mut pcre_extra) {
+pub unsafe fn pcre_free_study(extra: *mut ::PcreExtra) {
     native::pcre_free_study(extra);
 }
 
-pub unsafe fn pcre_fullinfo(code: *pcre, extra: *pcre_extra, what: fullinfo_field, where: *mut c_void) {
+pub unsafe fn pcre_fullinfo(code: *pcre, extra: *::PcreExtra, what: fullinfo_field, where: *mut c_void) {
     assert!(code.is_not_null());
     let rc = native::pcre_fullinfo(code, extra, what, where);
     if rc < 0 && rc != PCRE_ERROR_NULL {
@@ -115,7 +104,7 @@ pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
     native::pcre_refcount(code, adjust)
 }
 
-pub unsafe fn pcre_study(code: *::detail::pcre, options: &EnumSet<::StudyOption>) -> *mut ::detail::pcre_extra {
+pub unsafe fn pcre_study(code: *::detail::pcre, options: &EnumSet<::StudyOption>) -> *mut ::PcreExtra {
     assert!(code.is_not_null());
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as study_options));
     let mut err: *c_char = ptr::null();

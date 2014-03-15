@@ -1,8 +1,8 @@
-extern crate pcre;
 extern crate collections;
+extern crate pcre;
 
 use collections::EnumSet;
-use pcre::{CompileOption, StudyOption, ExtraOption, Pcre};
+use pcre::{CompileOption, Pcre, StudyOption};
 
 #[test]
 #[should_fail]
@@ -132,6 +132,7 @@ fn test_extra_mark() {
     assert_eq!(re.mark(), None);
 
     let mut study_options: EnumSet<StudyOption> = EnumSet::empty();
+    study_options.add(pcre::StudyExtraNeeded);
     study_options.add(pcre::StudyJitCompile);
     let study = re.study_with_options(&study_options);
     // Double check to make sure the study worked
@@ -142,9 +143,7 @@ fn test_extra_mark() {
     assert_eq!(re.mark(), None);
 
     // set that I am using the extra mark field
-    let mut extra_options: EnumSet<ExtraOption> = EnumSet::empty();
-    extra_options.add(pcre::ExtraMark);
-    let extra = re.set_extra_options(&extra_options);
+    let extra = re.enable_mark();
     // This will fail only if I didn't study first
     assert!(extra);
 
@@ -162,7 +161,7 @@ fn test_extra_mark() {
     // and the marked value should be A
     let mark1 = re.mark();
     assert!(mark1.is_some());
-    assert_eq!(mark1.unwrap(), ~"A");
+    assert_eq!(mark1.unwrap(), "A");
 
     let opt_m2 = re.exec(subject2);
     assert!(opt_m2.is_some());
@@ -172,5 +171,5 @@ fn test_extra_mark() {
     assert_eq!(m2.group(0), "XZ");
 
     // and the marked value should be B
-    assert_eq!(re.mark().unwrap(), ~"B");
+    assert_eq!(re.mark().unwrap(), "B");
 }
