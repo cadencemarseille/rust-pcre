@@ -91,6 +91,8 @@ pub enum StudyOption {
     StudyJitCompile = 0x0001,
     StudyJitPartialSoftCompile = 0x0002,
     StudyJitPartialHardCompile = 0x0004,
+
+    /// Always create an extra block. Note: Requires PCRE version 8.32 or later.
     StudyExtraNeeded = 0x0008
 }
 
@@ -394,7 +396,7 @@ impl Pcre {
     /// pattern must have been previously studied and an extra block must have been created.
     ///
     /// To ensure that an extra block has been created, call [study_with_options()](#method.study_with_options)
-    /// passing the `StudyExtraNeeded` study option.
+    /// passing the [`StudyExtraNeeded`](enum.StudyOption.html#variant.StudyExtraNeeded) study option.
     ///
     /// # Return value
     /// `true` if the use of the mark field could be enabled. `false` otherwise, which signifies
@@ -620,8 +622,8 @@ impl Pcre {
     ///   information about each option.
     ///
     /// # Return value
-    /// `true` if additional information could be extracted or the `StudyExtraNeeded` option was
-    /// passed. `false` otherwise.
+    /// `true` if additional information could be extracted or the [`StudyExtraNeeded`](enum.StudyOption.html#variant.StudyExtraNeeded)
+    /// option was passed. `false` otherwise.
     pub fn study_with_options(&mut self, options: &EnumSet<StudyOption>) -> bool {
         unsafe {
             // If something else has a reference to `code` then it probably has a pointer to
