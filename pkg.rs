@@ -6,7 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 #[allow(unused_must_use)];
+#[feature(phase)];
 
+#[phase(syntax, link)] extern crate log;
 extern crate rustc;
 
 use rustc::driver::driver::host_triple;

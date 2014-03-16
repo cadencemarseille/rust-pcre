@@ -8,8 +8,10 @@
 
 #[crate_id = "pcre#0.1"];
 #[crate_type = "lib"];
+#[feature(phase)];
 
 extern crate collections;
+#[phase(syntax, link)] extern crate log;
 
 use collections::treemap::{TreeMap};
 use collections::enum_set::{CLike, EnumSet};
