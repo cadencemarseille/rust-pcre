@@ -100,8 +100,8 @@ fn main() {
         return;
     }
 
-    let pattern = opt_matches.free[0].clone();
-    let subject = opt_matches.free[1].clone();
+    let pattern = opt_matches.free.get(0).clone();
+    let subject = opt_matches.free.get(1).clone();
 
     let mut compile_options: EnumSet<CompileOption> = EnumSet::empty();
     compile_options.add(pcre::DupNames);

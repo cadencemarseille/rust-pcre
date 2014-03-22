@@ -106,7 +106,7 @@ use std::c_str::\\{CString\\};
 use std::libc::\\{c_char, c_int, c_uchar, c_void\\};
 use std::ptr;
 use std::ptr::\\{RawPtr\\};
-use std::vec;
+use std::slice;
 
 type options = c_int;
 struct pcre;
@@ -143,7 +143,7 @@ fn main () \\{
             assert!(code.is_not_null());
 
             let ovecsize = 1 * 3;
-            let mut ovector: ~[c_int] = vec::from_elem(ovecsize, 0 as c_int);
+            let mut ovector = slice::from_elem(ovecsize, 0 as c_int);
             version_str.with_c_str_unchecked(|version_c_str| \\{
                 let rc = pcre_exec(code, ptr::null(), version_c_str, version_str.len() as c_int, 0, 0, ovector.as_mut_ptr(), ovecsize as c_int);
                 if rc < 0 \\{
