@@ -24,7 +24,7 @@ use std::option::{Option};
 use std::ptr;
 use std::raw::{Slice};
 use std::result::{Result};
-use std::vec;
+use std::slice;
 
 mod detail;
 
@@ -485,7 +485,7 @@ impl Pcre {
     #[inline]
     pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: &EnumSet<ExecOption>) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
-        let mut ovector: ~[c_int] = vec::from_elem(ovecsize as uint, 0 as c_int);
+        let mut ovector: ~[c_int] = slice::from_elem(ovecsize as uint, 0 as c_int);
 
         unsafe {
             subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
@@ -554,7 +554,7 @@ impl Pcre {
                 subject_cstring: subject.to_c_str_unchecked(), // the subject string can contain NUL bytes
                 offset: 0,
                 options: options.clone(),
-                ovector: vec::from_elem(ovecsize as uint, 0 as c_int)
+                ovector: slice::from_elem(ovecsize as uint, 0 as c_int)
             }
         }
     }
