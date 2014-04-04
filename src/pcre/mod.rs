@@ -6,9 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[crate_id = "pcre#0.1"];
-#[crate_type = "lib"];
-#[feature(phase)];
+#![crate_id = "pcre#0.1"]
+#![crate_type = "lib"]
+#![feature(phase)]
 
 extern crate collections;
 #[phase(syntax, link)] extern crate log;
