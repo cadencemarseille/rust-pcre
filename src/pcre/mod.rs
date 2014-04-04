@@ -98,70 +98,70 @@ pub enum StudyOption {
 
 pub struct CompilationError {
 
-    priv opt_err: Option<~str>,
+    opt_err: Option<~str>,
 
-    priv erroffset: c_int
+    erroffset: c_int
 
 }
 
 /// Wrapper for libpcre's `pcre` object (representing a compiled regular expression).
 pub struct Pcre {
 
-    priv code: *detail::pcre,
+    code: *detail::pcre,
 
-    priv extra: *mut PcreExtra,
+    extra: *mut PcreExtra,
 
-    priv capture_count_: c_int,
+    capture_count_: c_int,
 
     /// A spot to place a pointer-to-mark name string.
-    priv mark_: *mut c_uchar
+    mark_: *mut c_uchar
 
 }
 
 pub struct PcreExtra {
 
-    priv flags: c_ulong,
-    priv study_data: *mut c_void,
-    priv match_limit_: c_ulong,
-    priv callout_data: *mut c_void,
-    priv tables: *c_uchar,
-    priv match_limit_recursion_: c_ulong,
-    priv mark: *mut *mut c_uchar,
-    priv executable_jit: *mut c_void
+    flags: c_ulong,
+    study_data: *mut c_void,
+    match_limit_: c_ulong,
+    callout_data: *mut c_void,
+    tables: *c_uchar,
+    match_limit_recursion_: c_ulong,
+    mark: *mut *mut c_uchar,
+    executable_jit: *mut c_void
 
 }
 
 /// Represents a match of a subject string against a regular expression.
 pub struct Match<'a> {
 
-    priv subject: &'a str,
+    subject: &'a str,
 
-    priv partial_ovector: ~[c_int],
+    partial_ovector: ~[c_int],
 
-    priv string_count_: c_int
+    string_count_: c_int
 
 }
 
 /// Iterator type for iterating matches within a subject string.
 pub struct MatchIterator<'a> {
 
-    priv code: *detail::pcre,
+    code: *detail::pcre,
 
-    priv extra: *PcreExtra,
+    extra: *PcreExtra,
 
-    priv capture_count: c_int,
+    capture_count: c_int,
 
-    priv subject: &'a str,
+    subject: &'a str,
 
     /// The subject string as a `CString`. In MatchIterator's next() method, this is re-used
     /// each time so that only one C-string copy of the subject string needs to be allocated.
-    priv subject_cstring: c_str::CString,
+    subject_cstring: c_str::CString,
 
-    priv offset: c_int,
+    offset: c_int,
 
-    priv options: EnumSet<ExecOption>,
+    options: EnumSet<ExecOption>,
 
-    priv ovector: ~[c_int]
+    ovector: ~[c_int]
 
 }
 
