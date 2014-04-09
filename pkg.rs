@@ -102,8 +102,10 @@ fn main() {
             Ok(f) => f
         };
         let contents = format!("\
+extern crate libc;
+
 use std::c_str::\\{CString\\};
-use std::libc::\\{c_char, c_int, c_uchar, c_void\\};
+use libc::\\{c_char, c_int, c_uchar, c_void\\};
 use std::ptr;
 use std::ptr::\\{RawPtr\\};
 use std::slice;
@@ -170,8 +172,8 @@ fn main () \\{
         Ok(rustc_output) => rustc_output
     };
     if !rustc_output.status.success() {
-        println!("{}", str::from_utf8(rustc_output.output));
-        println!("{}", str::from_utf8(rustc_output.error));
+        println!("{}", str::from_utf8(rustc_output.output.as_slice()));
+        println!("{}", str::from_utf8(rustc_output.error.as_slice()));
         fail!("Package script error: `rustc versioncheck.rs` failed: {}", rustc_output.status);
     }
     let versioncheck_output = match Process::output("./versioncheck", []) {
@@ -179,8 +181,8 @@ fn main () \\{
         Ok(versioncheck_output) => versioncheck_output
     };
     if !versioncheck_output.status.success() {
-        println!("{}", str::from_utf8(versioncheck_output.output));
-        println!("{}", str::from_utf8(versioncheck_output.error));
+        println!("{}", str::from_utf8(versioncheck_output.output.as_slice()));
+        println!("{}", str::from_utf8(versioncheck_output.error.as_slice()));
         fail!("versioncheck error: {}", versioncheck_output.status);
     }
     cd(&workspace_path);
@@ -229,8 +231,8 @@ fn main () \\{
         Err(e) => fail!("Package script error: Failed to run `rustc`: {:s}", e.to_str()),
         Ok(rustc_output) => {
             if !rustc_output.status.success() {
-                println!("{}", str::from_utf8(rustc_output.output));
-                println!("{}", str::from_utf8(rustc_output.error));
+                println!("{}", str::from_utf8(rustc_output.output.as_slice()));
+                println!("{}", str::from_utf8(rustc_output.error.as_slice()));
                 fail!("Package script error: `rustc src/pcre/mod.rs` failed: {}", rustc_output.status);
             }
         }
@@ -240,8 +242,8 @@ fn main () \\{
         Err(e) => fail!("Package script error: Failed to run `rustc`: {:s}", e.to_str()),
         Ok(rustc_output) => {
             if !rustc_output.status.success() {
-                println!("{}", str::from_utf8(rustc_output.output));
-                println!("{}", str::from_utf8(rustc_output.error));
+                println!("{}", str::from_utf8(rustc_output.output.as_slice()));
+                println!("{}", str::from_utf8(rustc_output.error.as_slice()));
                 fail!("Package script error: `rustc src/pcredemo/main.rs` failed: {}", rustc_output.status);
             }
         }

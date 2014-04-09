@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::libc::{c_char, c_int, c_uchar, c_void};
+use libc::{c_char, c_int, c_uchar, c_void};
 
 #[link(name = "pcre")]
 extern {
