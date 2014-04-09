@@ -10,6 +10,7 @@
 #![crate_type = "lib"]
 #![feature(phase)]
 
+extern crate libc;
 extern crate collections;
 #[phase(syntax, link)] extern crate log;
 
@@ -18,8 +19,7 @@ use collections::enum_set::{CLike, EnumSet};
 use std::c_str;
 use std::c_str::{CString};
 use std::cast;
-use std::libc;
-use std::libc::{c_char, c_int, c_uchar, c_ulong, c_void};
+use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
 use std::option::{Option};
 use std::ptr;
 use std::raw::{Slice};
