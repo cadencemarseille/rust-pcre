@@ -145,14 +145,14 @@ fn main () \\{
             assert!(code.is_not_null());
 
             let ovecsize = 1 * 3;
-            let mut ovector = slice::from_elem(ovecsize, 0 as c_int);
+            let mut ovector = Vec::from_elem(ovecsize, 0 as c_int);
             version_str.with_c_str_unchecked(|version_c_str| \\{
                 let rc = pcre_exec(code, ptr::null(), version_c_str, version_str.len() as c_int, 0, 0, ovector.as_mut_ptr(), ovecsize as c_int);
                 if rc < 0 \\{
                     fail!(\"pcre_exec() failed\");
                 \\}
 
-                print!(\"\\{\\}\", version_str.slice_to(ovector[1] as uint));
+                print!(\"\\{\\}\", version_str.slice_to(*ovector.get(1) as uint));
             \\});
 
             pcre_free(code as *c_void);
@@ -194,7 +194,7 @@ fn main () \\{
 
     // The "no debug symbols in executable" warning may be present in the output.
     // https://github.com/mozilla/rust/issues/3495
-    let mut output_rsplit_iter = output_str.rsplit('\n');
+    let mut output_rsplit_iter = output_str.split('\n').rev();
     let version_str: ~str = match output_rsplit_iter.next() {
         None              => output_str.clone(),
         Some(version_str) => version_str.to_owned()

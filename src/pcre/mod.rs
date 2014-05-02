@@ -105,6 +105,7 @@ pub struct CompilationError {
 }
 
 /// Wrapper for libpcre's `pcre` object (representing a compiled regular expression).
+#[deriving(Show)]
 pub struct Pcre {
 
     code: *detail::pcre,
@@ -136,7 +137,7 @@ pub struct Match<'a> {
 
     subject: &'a str,
 
-    partial_ovector: ~[c_int],
+    partial_ovector: Vec<c_int>,
 
     string_count_: c_int
 
@@ -161,7 +162,7 @@ pub struct MatchIterator<'a> {
 
     options: EnumSet<ExecOption>,
 
-    ovector: ~[c_int]
+    ovector: Vec<c_int>
 
 }
 
@@ -485,7 +486,7 @@ impl Pcre {
     #[inline]
     pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: &EnumSet<ExecOption>) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
-        let mut ovector: ~[c_int] = slice::from_elem(ovecsize as uint, 0 as c_int);
+        let mut ovector = Vec::from_elem(ovecsize as uint, 0 as c_int);
 
         unsafe {
             subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
@@ -493,7 +494,7 @@ impl Pcre {
                 if rc >= 0 {
                     Some(Match {
                         subject: subject,
-                        partial_ovector: ovector.slice_to(((self.capture_count_ + 1) * 2) as uint).to_owned(),
+                        partial_ovector: Vec::from_slice(ovector.slice_to(((self.capture_count_ + 1) * 2) as uint)),
                         string_count_: rc
                     })
                 } else {
@@ -554,7 +555,7 @@ impl Pcre {
                 subject_cstring: subject.to_c_str_unchecked(), // the subject string can contain NUL bytes
                 offset: 0,
                 options: options.clone(),
-                ovector: slice::from_elem(ovecsize as uint, 0 as c_int)
+                ovector: Vec::from_elem(ovecsize as uint, 0 as c_int)
             }
         }
     }
@@ -574,7 +575,7 @@ impl Pcre {
     /// The value type of the returned `TreeMap` is a `uint` vector because there can be
     /// more than one group number for a given name if the PCRE_DUPNAMES option is used
     /// when compiling the regular expression.
-    pub fn name_table(&self) -> TreeMap<~str, ~[uint]> {
+    pub fn name_table(&self) -> TreeMap<~str, Vec<uint>> {
         unsafe {
             let name_count = self.name_count();
             let mut tabptr: *c_uchar = ptr::null();
@@ -582,7 +583,7 @@ impl Pcre {
             let mut name_entry_size: c_int = 0;
             detail::pcre_fullinfo(self.code, self.extra as *PcreExtra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
 
-            let mut name_table: TreeMap<~str, ~[uint]> = TreeMap::new();
+            let mut name_table: TreeMap<~str, Vec<uint>> = TreeMap::new();
 
             let mut i = 0u;
             while i < name_count {
@@ -592,7 +593,7 @@ impl Pcre {
                 // TODO Avoid the double lookup.
                 // https://github.com/mozilla/rust/issues/9068
                 if !name_table.contains_key(&name) {
-                    name_table.insert(name, ~[n]);
+                    name_table.insert(name, vec![n]);
                 } else {
                     name_table.find_mut(&name).unwrap().push(n);
                 }
@@ -708,12 +709,12 @@ impl PcreExtra {
 impl<'a> Match<'a> {
     /// Returns the start index within the subject string of capture group `n`.
     pub fn group_start(&self, n: uint) -> uint {
-        self.partial_ovector[(n * 2) as uint] as uint
+        self.partial_ovector.as_slice()[(n * 2) as uint] as uint
     }
 
     /// Returns the end index within the subject string of capture group `n`.
     pub fn group_end(&self, n: uint) -> uint {
-        self.partial_ovector[(n * 2 + 1) as uint] as uint
+        self.partial_ovector.as_slice()[(n * 2 + 1) as uint] as uint
     }
 
     /// Returns the length of the substring for capture group `n`.
@@ -781,11 +782,11 @@ impl<'a> Iterator<Match<'a>> for MatchIterator<'a> {
                 let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, &self.options, self.ovector.as_mut_ptr(), self.ovector.len() as c_int);
                 if rc >= 0 {
                     // Update the iterator state.
-                    self.offset = self.ovector[1];
+                    self.offset = self.ovector.as_slice()[1];
 
                     Some(Match {
                         subject: self.subject,
-                        partial_ovector: self.ovector.slice_to(((self.capture_count + 1) * 2) as uint).to_owned(),
+                        partial_ovector: Vec::from_slice(self.ovector.slice_to(((self.capture_count + 1) * 2) as uint)),
                         string_count_: rc
                     })
                 } else {

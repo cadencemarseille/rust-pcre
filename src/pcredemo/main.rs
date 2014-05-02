@@ -33,7 +33,7 @@ fn print_version_info() {
     println!("rust-pcre 0.1 compiled against libpcre {}", pcre_version());
 }
 
-fn print_match(m: &Match, name_table: &TreeMap<~str, ~[uint]>) {
+fn print_match(m: &Match, name_table: &TreeMap<~str, Vec<uint>>) {
     println!("Match succeeded at offset {:u}", m.group_start(0u));
 
     // Show captured substrings by number.
