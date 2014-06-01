@@ -14,17 +14,19 @@ extern crate libc;
 extern crate collections;
 #[phase(syntax, link)] extern crate log;
 
-use collections::treemap::{TreeMap};
 use collections::enum_set::{CLike, EnumSet};
+use collections::treemap::{TreeMap};
+use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
 use std::c_str;
 use std::c_str::{CString};
-use std::cast;
-use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
+use std::container::{Container};
+use std::mem;
 use std::option::{Option};
 use std::ptr;
 use std::raw::{Slice};
 use std::result::{Result};
 use std::slice;
+use std::string::{String};
 
 mod detail;
 
@@ -98,7 +100,7 @@ pub enum StudyOption {
 
 pub struct CompilationError {
 
-    opt_err: Option<~str>,
+    opt_err: Option<String>,
 
     erroffset: c_int
 
@@ -313,7 +315,7 @@ impl CLike for StudyOption {
 }
 
 impl CompilationError {
-    pub fn message(&self) -> Option<~str> {
+    pub fn message(&self) -> Option<String> {
         self.opt_err.clone()
     }
 
@@ -325,8 +327,8 @@ impl CompilationError {
 impl std::fmt::Show for CompilationError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self.opt_err {
-            None => write!(f.buf, "compilation failed at offset {:u}", self.erroffset as uint),
-            Some(ref s) => write!(f.buf, "compilation failed at offset {:u}: {:s}", self.erroffset as uint, s.as_slice())
+            None => write!(f, "compilation failed at offset {:u}", self.erroffset as uint),
+            Some(ref s) => write!(f, "compilation failed at offset {:u}: {:s}", self.erroffset as uint, s.as_slice())
         }
     }
 }
@@ -520,7 +522,7 @@ impl Pcre {
                     data: self.mark_ as *c_uchar,
                     len: libc::strlen(self.mark_ as *c_char) as uint
                 };
-                Some(cast::transmute(slice))
+                Some(mem::transmute(slice))
             }
         }
     }
@@ -575,7 +577,7 @@ impl Pcre {
     /// The value type of the returned `TreeMap` is a `uint` vector because there can be
     /// more than one group number for a given name if the PCRE_DUPNAMES option is used
     /// when compiling the regular expression.
-    pub fn name_table(&self) -> TreeMap<~str, Vec<uint>> {
+    pub fn name_table(&self) -> TreeMap<String, Vec<uint>> {
         unsafe {
             let name_count = self.name_count();
             let mut tabptr: *c_uchar = ptr::null();
@@ -583,13 +585,13 @@ impl Pcre {
             let mut name_entry_size: c_int = 0;
             detail::pcre_fullinfo(self.code, self.extra as *PcreExtra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
 
-            let mut name_table: TreeMap<~str, Vec<uint>> = TreeMap::new();
+            let mut name_table: TreeMap<String, Vec<uint>> = TreeMap::new();
 
             let mut i = 0u;
             while i < name_count {
                 let n: uint = (ptr::read(tabptr) as uint << 8) | (ptr::read(tabptr.offset(1)) as uint);
                 let name_cstring = c_str::CString::new(tabptr.offset(2) as *c_char, false);
-                let name: ~str = name_cstring.as_str().unwrap().to_owned();
+                let name: String = name_cstring.as_str().unwrap().to_owned();
                 // TODO Avoid the double lookup.
                 // https://github.com/mozilla/rust/issues/9068
                 if !name_table.contains_key(&name) {
@@ -725,11 +727,11 @@ impl<'a> Match<'a> {
 
     /// Returns the substring for capture group `n` as a slice.
     #[inline]
-    pub fn group(&self, n: uint) -> &'a str {
+    pub fn group(&'a self, n: uint) -> &'a str {
         let group_offsets = self.partial_ovector.slice_from((n * 2) as uint);
         let start = group_offsets[0];
         let end = group_offsets[1];
-        self.subject.slice(start as uint, end as uint)
+        self.subject.as_slice().slice(start as uint, end as uint)
     }
 
     /// Returns the number of substrings captured.
@@ -798,6 +800,6 @@ impl<'a> Iterator<Match<'a>> for MatchIterator<'a> {
 }
 
 /// Returns libpcre version information.
-pub fn pcre_version() -> ~str {
+pub fn pcre_version() -> String {
     detail::pcre_version()
 }

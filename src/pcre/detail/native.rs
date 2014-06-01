@@ -10,7 +10,7 @@ use libc::{c_char, c_int, c_uchar, c_void};
 
 #[link(name = "pcre")]
 extern {
-    pub static pcre_free: extern "C" unsafe fn(ptr: *mut c_void);
+    pub static pcre_free: extern "C" fn(ptr: *mut c_void);
 
     pub fn pcre_compile(pattern: *c_char, options: ::detail::compile_options, errptr: *mut *c_char, erroffset: *mut c_int, tableptr: *c_uchar) -> *mut ::detail::pcre;
     pub fn pcre_exec(code: *::detail::pcre, extra: *::PcreExtra, subject: *c_char, length: c_int, startoffset: c_int, options: ::detail::exec_options, ovector: *mut c_int, ovecsize: c_int) -> c_int;

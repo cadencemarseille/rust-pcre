@@ -7,11 +7,12 @@
 // except according to those terms.
 
 use collections::enum_set::{EnumSet};
-use std::c_str::{CString};
 use libc::{c_char, c_int, c_uchar, c_void};
+use std::c_str::{CString};
 use std::ptr;
 use std::ptr::{RawPtr};
 use std::result::{Result};
+use std::string::{String};
 
 mod native;
 
@@ -36,7 +37,7 @@ pub static PCRE_INFO_NAMEENTRYSIZE: fullinfo_field = 7;
 pub static PCRE_INFO_NAMECOUNT: fullinfo_field = 8;
 pub static PCRE_INFO_NAMETABLE: fullinfo_field = 9;
 
-pub unsafe fn pcre_compile(pattern: *c_char, options: &EnumSet<::CompileOption>, tableptr: *c_uchar) -> Result<*mut pcre, (Option<~str>, c_int)> {
+pub unsafe fn pcre_compile(pattern: *c_char, options: &EnumSet<::CompileOption>, tableptr: *c_uchar) -> Result<*mut pcre, (Option<String>, c_int)> {
     assert!(pattern.is_not_null());
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as compile_options)) | PCRE_UTF8 | PCRE_NO_UTF8_CHECK;
     let mut err: *c_char = ptr::null();
@@ -127,7 +128,7 @@ pub unsafe fn pcre_study(code: *::detail::pcre, options: &EnumSet<::StudyOption>
     extra
 }
 
-pub fn pcre_version() -> ~str {
+pub fn pcre_version() -> String {
     let version_cstring = unsafe { CString::new(native::pcre_version(), false) };
     version_cstring.as_str().unwrap().to_owned()
 }
