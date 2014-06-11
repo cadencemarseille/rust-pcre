@@ -19,7 +19,6 @@ use collections::treemap::{TreeMap};
 use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
 use std::c_str;
 use std::c_str::{CString};
-use std::container::{Container};
 use std::mem;
 use std::option::{Option};
 use std::ptr;
