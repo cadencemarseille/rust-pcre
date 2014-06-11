@@ -12,7 +12,7 @@
 
 extern crate libc;
 extern crate collections;
-#[phase(syntax, link)] extern crate log;
+#[phase(plugin, link)] extern crate log;
 
 use collections::enum_set::{CLike, EnumSet};
 use collections::treemap::{TreeMap};

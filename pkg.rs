@@ -8,7 +8,7 @@
 #![allow(unused_must_use)]
 #![feature(phase)]
 
-#[phase(syntax, link)] extern crate log;
+#[phase(plugin, link)] extern crate log;
 extern crate rustc;
 
 use rustc::driver::driver::host_triple;
