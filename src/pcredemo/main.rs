@@ -61,7 +61,7 @@ fn main() {
     let args = os::args();
     let program = args.get(0);
 
-    let opts = ~[
+    let opts = [
         optflag("g", "", "find all matches"),
         optflag("h", "help", "print usage and exit"),
         optflag("", "version", "print version information and exit")
