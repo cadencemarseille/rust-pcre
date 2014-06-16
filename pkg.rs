@@ -104,61 +104,61 @@ fn main() {
         let contents = format!("\
 extern crate libc;
 
-use std::c_str::\\{CString\\};
-use libc::\\{c_char, c_int, c_uchar, c_void\\};
+use std::c_str::{{CString}};
+use libc::{{c_char, c_int, c_uchar, c_void}};
 use std::ptr;
-use std::ptr::\\{RawPtr\\};
+use std::ptr::{{RawPtr}};
 use std::slice;
 
 type options = c_int;
 struct pcre;
 struct pcre_extra;
 
-\\#[link(name = \"pcre\")]
-extern \\{
+#[link(name = \"pcre\")]
+extern {{
     static pcre_free: extern \"C\" fn(ptr: *c_void);
 
     fn pcre_compile(pattern: *c_char, options: options, errptr: *mut *c_char, erroffset: *mut c_int, tableptr: *c_uchar) -> *pcre;
     fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: options, ovector: *mut c_int, ovecsize: c_int) -> c_int;
     fn pcre_version() -> *c_char;
-\\}
+}}
 
-fn main () \\{
-    unsafe \\{
+fn main () {{
+    unsafe {{
         let version_cstring = CString::new(pcre_version(), false);
         let version_str = version_cstring.as_str().unwrap().to_string();
 
-        let pattern = \"^\\\\\\\\d+\\\\\\\\.\\\\\\\\d+\";
-        pattern.with_c_str(|pattern_c_str| \\{
+        let pattern = \"^\\\\d+\\\\.\\\\d+\";
+        pattern.with_c_str(|pattern_c_str| {{
             let mut err: *c_char = ptr::null();
             let mut erroffset: c_int = 0;
             let code = pcre_compile(pattern_c_str, 0, &mut err, &mut erroffset, ptr::null());
-            if code.is_null() \\{
-                if code.is_null() \\{
+            if code.is_null() {{
+                if code.is_null() {{
                     let err_cstring = CString::new(err, false);
-                    match err_cstring.as_str() \\{
-                        None          => fail!(\"pcre_compile() failed at offset \\{\\}\", erroffset as uint),
-                        Some(err_str) => fail!(\"pcre_compile() failed at offset \\{\\}: \\{\\}\", erroffset as uint, err_str)
-                    \\}
-                \\}
-            \\}
+                    match err_cstring.as_str() {{
+                        None          => fail!(\"pcre_compile() failed at offset {{}}\", erroffset as uint),
+                        Some(err_str) => fail!(\"pcre_compile() failed at offset {{}}: {{}}\", erroffset as uint, err_str)
+                    }}
+                }}
+            }}
             assert!(code.is_not_null());
 
             let ovecsize = 1 * 3;
             let mut ovector = Vec::from_elem(ovecsize, 0 as c_int);
-            version_str.with_c_str_unchecked(|version_c_str| \\{
+            version_str.with_c_str_unchecked(|version_c_str| {{
                 let rc = pcre_exec(code, ptr::null(), version_c_str, version_str.len() as c_int, 0, 0, ovector.as_mut_ptr(), ovecsize as c_int);
-                if rc < 0 \\{
+                if rc < 0 {{
                     fail!(\"pcre_exec() failed\");
-                \\}
+                }}
 
-                print!(\"\\{\\}\", version_str.as_slice().slice_to(*ovector.get(1) as uint));
-            \\});
+                print!(\"{{}}\", version_str.as_slice().slice_to(*ovector.get(1) as uint));
+            }});
 
             pcre_free(code as *c_void);
-        \\});
-    \\}
-\\}
+        }});
+    }}
+}}
 ");
         f.write_str(contents.as_slice()).map_err(|e| -> () {
             fail!("Package script error: Failed to write to `{}`: {:s}", versioncheck_rs_path.display(), e.to_str());
