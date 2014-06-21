@@ -9,6 +9,7 @@
 #![crate_id = "pcre#0.1"]
 #![crate_type = "lib"]
 #![feature(phase)]
+#![feature(unsafe_destructor)]
 
 extern crate libc;
 extern crate collections;
