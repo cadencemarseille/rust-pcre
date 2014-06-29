@@ -116,11 +116,11 @@ struct pcre_extra;
 
 #[link(name = \"pcre\")]
 extern {{
-    static pcre_free: extern \"C\" fn(ptr: *c_void);
+    static pcre_free: extern \"C\" fn(ptr: *const c_void);
 
-    fn pcre_compile(pattern: *c_char, options: options, errptr: *mut *c_char, erroffset: *mut c_int, tableptr: *c_uchar) -> *pcre;
-    fn pcre_exec(code: *pcre, extra: *pcre_extra, subject: *c_char, length: c_int, startoffset: c_int, options: options, ovector: *mut c_int, ovecsize: c_int) -> c_int;
-    fn pcre_version() -> *c_char;
+    fn pcre_compile(pattern: *const c_char, options: options, errptr: *mut *const c_char, erroffset: *mut c_int, tableptr: *const c_uchar) -> *const pcre;
+    fn pcre_exec(code: *const pcre, extra: *const pcre_extra, subject: *const c_char, length: c_int, startoffset: c_int, options: options, ovector: *mut c_int, ovecsize: c_int) -> c_int;
+    fn pcre_version() -> *const c_char;
 }}
 
 fn main () {{
@@ -130,7 +130,7 @@ fn main () {{
 
         let pattern = \"^\\\\d+\\\\.\\\\d+\";
         pattern.with_c_str(|pattern_c_str| {{
-            let mut err: *c_char = ptr::null();
+            let mut err: *const c_char = ptr::null();
             let mut erroffset: c_int = 0;
             let code = pcre_compile(pattern_c_str, 0, &mut err, &mut erroffset, ptr::null());
             if code.is_null() {{
@@ -155,7 +155,7 @@ fn main () {{
                 print!(\"{{}}\", version_str.as_slice().slice_to(*ovector.get(1) as uint));
             }});
 
-            pcre_free(code as *c_void);
+            pcre_free(code as *const c_void);
         }});
     }}
 }}

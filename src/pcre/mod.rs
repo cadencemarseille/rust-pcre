@@ -110,7 +110,7 @@ pub struct CompilationError {
 #[deriving(Show)]
 pub struct Pcre {
 
-    code: *detail::pcre,
+    code: *const detail::pcre,
 
     extra: *mut PcreExtra,
 
@@ -127,7 +127,7 @@ pub struct PcreExtra {
     study_data: *mut c_void,
     match_limit_: c_ulong,
     callout_data: *mut c_void,
-    tables: *c_uchar,
+    tables: *const c_uchar,
     match_limit_recursion_: c_ulong,
     mark: *mut *mut c_uchar,
     executable_jit: *mut c_void
@@ -148,9 +148,9 @@ pub struct Match<'a> {
 /// Iterator type for iterating matches within a subject string.
 pub struct MatchIterator<'a> {
 
-    code: *detail::pcre,
+    code: *const detail::pcre,
 
-    extra: *PcreExtra,
+    extra: *const PcreExtra,
 
     capture_count: c_int,
 
@@ -353,14 +353,14 @@ impl Pcre {
         pattern.with_c_str(|pattern_c_str| {
             unsafe {
                 // Use the default character tables.
-                let tableptr: *c_uchar = ptr::null();
+                let tableptr: *const c_uchar = ptr::null();
                 match detail::pcre_compile(pattern_c_str, options, tableptr) {
                     Err((opt_err, erroffset)) => Err(CompilationError {
                         opt_err: opt_err,
                         erroffset: erroffset
                     }),
                     Ok(mut_code) => {
-                        let code = mut_code as *detail::pcre;
+                        let code = mut_code as *const detail::pcre;
                         assert!(code.is_not_null());
                         // Take a reference.
                         detail::pcre_refcount(code as *mut detail::pcre, 1);
@@ -368,7 +368,7 @@ impl Pcre {
                         let extra: *mut PcreExtra = ptr::mut_null();
 
                         let mut capture_count: c_int = 0;
-                        detail::pcre_fullinfo(code, extra as *PcreExtra, detail::PCRE_INFO_CAPTURECOUNT, 
+                        detail::pcre_fullinfo(code, extra as *const PcreExtra, detail::PCRE_INFO_CAPTURECOUNT, 
                             &mut capture_count as *mut c_int as *mut c_void);
 
                         Ok(Pcre {
@@ -492,7 +492,7 @@ impl Pcre {
 
         unsafe {
             subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
-                let rc = detail::pcre_exec(self.code, self.extra as *PcreExtra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, ovector.as_mut_ptr(), ovecsize as c_int);
+                let rc = detail::pcre_exec(self.code, self.extra as *const PcreExtra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, ovector.as_mut_ptr(), ovecsize as c_int);
                 if rc >= 0 {
                     Some(Match {
                         subject: subject,
@@ -519,8 +519,8 @@ impl Pcre {
                 None
             } else {
                 let slice: Slice<c_uchar> = Slice {
-                    data: self.mark_ as *c_uchar,
-                    len: libc::strlen(self.mark_ as *c_char) as uint
+                    data: self.mark_ as *const c_uchar,
+                    len: libc::strlen(self.mark_ as *const c_char) as uint
                 };
                 Some(mem::transmute(slice))
             }
@@ -551,7 +551,7 @@ impl Pcre {
             let ovecsize = (self.capture_count_ + 1) * 3;
             MatchIterator {
                 code: { detail::pcre_refcount(self.code as *mut detail::pcre, 1); self.code },
-                extra: self.extra as *PcreExtra,
+                extra: self.extra as *const PcreExtra,
                 capture_count: self.capture_count_,
                 subject: subject,
                 subject_cstring: subject.to_c_str_unchecked(), // the subject string can contain NUL bytes
@@ -566,7 +566,7 @@ impl Pcre {
     pub fn name_count(&self) -> uint {
         unsafe {
             let mut name_count: c_int = 0;
-            detail::pcre_fullinfo(self.code, self.extra as *PcreExtra, detail::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
+            detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, detail::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
             name_count as uint
         }
     }
@@ -580,17 +580,17 @@ impl Pcre {
     pub fn name_table(&self) -> TreeMap<String, Vec<uint>> {
         unsafe {
             let name_count = self.name_count();
-            let mut tabptr: *c_uchar = ptr::null();
-            detail::pcre_fullinfo(self.code, self.extra as *PcreExtra, detail::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *c_uchar as *mut c_void);
+            let mut tabptr: *const c_uchar = ptr::null();
+            detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, detail::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *const c_uchar as *mut c_void);
             let mut name_entry_size: c_int = 0;
-            detail::pcre_fullinfo(self.code, self.extra as *PcreExtra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
+            detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
 
             let mut name_table: TreeMap<String, Vec<uint>> = TreeMap::new();
 
             let mut i = 0u;
             while i < name_count {
                 let n: uint = (ptr::read(tabptr) as uint << 8) | (ptr::read(tabptr.offset(1)) as uint);
-                let name_cstring = c_str::CString::new(tabptr.offset(2) as *c_char, false);
+                let name_cstring = c_str::CString::new(tabptr.offset(2) as *const c_char, false);
                 let name: String = name_cstring.as_str().unwrap().to_owned();
                 // TODO Avoid the double lookup.
                 // https://github.com/mozilla/rust/issues/9068
