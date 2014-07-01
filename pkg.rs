@@ -20,7 +20,7 @@ use std::option::{Option};
 use std::os;
 use std::str;
 
-#[deriving(PartialEq)]
+#[deriving(Eq, PartialEq)]
 struct Version {
     major: uint,
     minor: uint
@@ -43,8 +43,14 @@ impl std::fmt::Show for Version {
 }
 
 impl PartialOrd for Version {
-    fn lt(&self, other: &Version) -> bool {
-        self.major < other.major || (self.major == other.major && self.minor < other.minor)
+    fn partial_cmp(&self, other: &Version) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Version {
+    fn cmp(&self, other: &Version) -> Ordering {
+        (self.major, self.minor).cmp(&(other.major, other.minor))
     }
 }
 
