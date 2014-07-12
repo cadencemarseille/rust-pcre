@@ -173,7 +173,7 @@ fn main () {{
 
     // Compile and run `versioncheck.rs`
     cd(&out_path);
-    let rustc_output = match Command::new("rustc").arg("versioncheck.rs").arg("-L").arg(pcre_lib_path.display().to_str()).output() {
+    let rustc_output = match Command::new("rustc").arg("versioncheck.rs").arg("-L").arg(pcre_lib_path).output() {
         Err(e) => fail!("Package script error: Failed to run `rustc`: {}", e),
         Ok(rustc_output) => rustc_output
     };
@@ -233,7 +233,7 @@ fn main () {{
     }
 
     // Compile libpcre-*.rlib
-    match Command::new("rustc").arg("--out-dir").arg(lib_path.display().to_str()).arg("src/pcre/mod.rs").arg("-L").arg(pcre_lib_path.display().to_str()).output() {
+    match Command::new("rustc").arg("--out-dir").arg(lib_path).arg("src/pcre/mod.rs").arg("-L").arg(pcre_lib_path).output() {
         Err(e) => fail!("Package script error: Failed to run `rustc`: {}", e),
         Ok(rustc_output) => {
             if !rustc_output.status.success() {
@@ -244,7 +244,7 @@ fn main () {{
         }
     }
 
-    match Command::new("rustc").arg("-o").arg(bin_path.join("pcredemo").display().to_str()).arg("src/pcredemo/main.rs").arg("-L").arg("lib").arg("-L").arg(pcre_lib_path.display().to_str()).output() {
+    match Command::new("rustc").arg("-o").arg(bin_path.join("pcredemo")).arg("src/pcredemo/main.rs").arg("-L").arg("lib").arg("-L").arg(pcre_lib_path).output() {
         Err(e) => fail!("Package script error: Failed to run `rustc`: {}", e),
         Ok(rustc_output) => {
             if !rustc_output.status.success() {
