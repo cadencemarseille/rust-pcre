@@ -215,7 +215,7 @@ fn main () {{
     };
 
     if pcre_version < min_required_version {
-        fail!("Package script error: Found libpcre version {}, but at least version {} is required", version_str.as_slice(), min_required_version.to_str());
+        fail!("Package script error: Found libpcre version {}, but at least version {} is required", version_str.as_slice(), min_required_version);
     }
 
     // Create directories `bin` and `lib`
