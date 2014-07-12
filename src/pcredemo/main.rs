@@ -108,7 +108,7 @@ fn main() {
     compile_options.add(pcre::DupNames);
     let re = match Pcre::compile_with_options(pattern.as_slice(), &compile_options) {
         Err(err) => {
-            writeln!(stderr(), "Error: The pattern could not be compiled: {:s}", err.to_str());
+            writeln!(stderr(), "Error: The pattern could not be compiled: {}", err);
             os::set_exit_status(1);
             return;
         },
