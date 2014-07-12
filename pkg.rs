@@ -67,7 +67,7 @@ fn main() {
                 Err(e) => {
                     match e.kind {
                         io::FileNotFound => fail!("Package script error: Could not run `pcre-config` because no such executable is in the executable search PATH. Make sure that you have installed a dev package for libpcre and/or make sure that libpcre's bindir is added to your PATH (currently \"{}\").", os::getenv("PATH").unwrap_or(String::from_str(""))),
-                        _ => fail!("Package script error: Could not run `pcre-config`: {}", e.to_str())
+                        _ => fail!("Package script error: Could not run `pcre-config`: {}", e)
                     }
                 },
                 Ok(pcre_config_output) => pcre_config_output
@@ -104,7 +104,7 @@ fn main() {
     let versioncheck_rs_path = out_path.join("versioncheck.rs");
     {
         let mut f = match File::create(&versioncheck_rs_path) {
-            Err(e) => fail!("Package script error: Failed to open `{}` for writing: {:s}", versioncheck_rs_path.display(), e.to_str()),
+            Err(e) => fail!("Package script error: Failed to open `{}` for writing: {}", versioncheck_rs_path.display(), e),
             Ok(f) => f
         };
         let contents = format!("\
@@ -167,14 +167,14 @@ fn main () {{
 }}
 ");
         f.write_str(contents.as_slice()).map_err(|e| -> () {
-            fail!("Package script error: Failed to write to `{}`: {:s}", versioncheck_rs_path.display(), e.to_str());
+            fail!("Package script error: Failed to write to `{}`: {}", versioncheck_rs_path.display(), e);
         });
     }
 
     // Compile and run `versioncheck.rs`
     cd(&out_path);
     let rustc_output = match Command::new("rustc").arg("versioncheck.rs").arg("-L").arg(pcre_lib_path.display().to_str()).output() {
-        Err(e) => fail!("Package script error: Failed to run `rustc`: {:s}", e.to_str()),
+        Err(e) => fail!("Package script error: Failed to run `rustc`: {}", e),
         Ok(rustc_output) => rustc_output
     };
     if !rustc_output.status.success() {
@@ -183,7 +183,7 @@ fn main () {{
         fail!("Package script error: `rustc versioncheck.rs` failed: {}", rustc_output.status);
     }
     let versioncheck_output = match Command::new("./versioncheck").output() {
-        Err(e) => fail!("Package script error: Failed to run `./versioncheck`: {:s}", e.to_str()),
+        Err(e) => fail!("Package script error: Failed to run `./versioncheck`: {}", e),
         Ok(versioncheck_output) => versioncheck_output
     };
     if !versioncheck_output.status.success() {
@@ -234,7 +234,7 @@ fn main () {{
 
     // Compile libpcre-*.rlib
     match Command::new("rustc").arg("--out-dir").arg(lib_path.display().to_str()).arg("src/pcre/mod.rs").arg("-L").arg(pcre_lib_path.display().to_str()).output() {
-        Err(e) => fail!("Package script error: Failed to run `rustc`: {:s}", e.to_str()),
+        Err(e) => fail!("Package script error: Failed to run `rustc`: {}", e),
         Ok(rustc_output) => {
             if !rustc_output.status.success() {
                 println!("{}", str::from_utf8(rustc_output.output.as_slice()));
@@ -245,7 +245,7 @@ fn main () {{
     }
 
     match Command::new("rustc").arg("-o").arg(bin_path.join("pcredemo").display().to_str()).arg("src/pcredemo/main.rs").arg("-L").arg("lib").arg("-L").arg(pcre_lib_path.display().to_str()).output() {
-        Err(e) => fail!("Package script error: Failed to run `rustc`: {:s}", e.to_str()),
+        Err(e) => fail!("Package script error: Failed to run `rustc`: {}", e),
         Ok(rustc_output) => {
             if !rustc_output.status.success() {
                 println!("{}", str::from_utf8(rustc_output.output.as_slice()));
