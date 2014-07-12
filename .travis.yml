@@ -14,9 +14,7 @@ install:
   - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcrecpp0gsa_*.deb
   - sudo apt-get --download-only install libpcre3gsa-dev
   - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa-dev_*.deb
-  - curl -O http://static.rust-lang.org/dist/rust-nightly-x86_64-unknown-linux-gnu.tar.gz
-  - tar xfz rust-nightly-x86_64-unknown-linux-gnu.tar.gz
-  - (cd rust-nightly-x86_64-unknown-linux-gnu/ && sudo ./install.sh)
+  - curl http://www.rust-lang.org/rustup.sh | sudo sh -
 script:
   - rustc --version
   - make install
