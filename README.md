@@ -1,5 +1,5 @@
 # rust-pcre
-[Rust](https://github.com/mozilla/rust) 0.11-pre+ wrapper for [libpcre](http://pcre.org/) 8.20+.
+[Rust](https://github.com/mozilla/rust) 0.12.0-pre wrapper for [libpcre](http://pcre.org/) 8.20+.
 
 [![Build Status](https://travis-ci.org/cadencemarseille/rust-pcre.png?branch=master)](https://travis-ci.org/cadencemarseille/rust-pcre) (with [Hans Jørgen Hoel's rust-nightly](http://hiho.io/rust-ci/))
 
