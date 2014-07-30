@@ -19,6 +19,7 @@ use std::io::fs::{mkdir, File};
 use std::option::{Option};
 use std::os;
 use std::str;
+use std::string;
 
 #[deriving(Eq, PartialEq)]
 struct Version {
@@ -77,7 +78,7 @@ fn main() {
             }
             let output_ptr = pcre_config_output.output.as_ptr();
             let output_len = pcre_config_output.output.len();
-            let prefix_str = unsafe { str::raw::from_buf_len(output_ptr, output_len) };
+            let prefix_str = unsafe { string::raw::from_buf_len(output_ptr, output_len) };
             // `pcre-config` adds a newline to the end, which we need to trim away.
             String::from_str(prefix_str.as_slice().trim()).append("/lib")
         },
@@ -195,7 +196,7 @@ fn main () {{
 
     let output_ptr = versioncheck_output.output.as_ptr();
     let output_len = versioncheck_output.output.len();
-    let output_str = unsafe { str::raw::from_buf_len(output_ptr, output_len) };
+    let output_str = unsafe { string::raw::from_buf_len(output_ptr, output_len) };
     debug!("output_str = `{}`", output_str);
 
     // The "no debug symbols in executable" warning may be present in the output.
