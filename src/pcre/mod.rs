@@ -17,6 +17,7 @@ extern crate collections;
 
 use collections::enum_set::{CLike, EnumSet};
 use collections::treemap::{TreeMap};
+use collections::vec::{Vec};
 use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
 use std::c_str;
 use std::c_str::{CString};
@@ -25,7 +26,6 @@ use std::option::{Option};
 use std::ptr;
 use std::raw::{Slice};
 use std::result::{Result};
-use std::slice;
 use std::string::{String};
 
 mod detail;
@@ -711,12 +711,12 @@ impl PcreExtra {
 impl<'a> Match<'a> {
     /// Returns the start index within the subject string of capture group `n`.
     pub fn group_start(&self, n: uint) -> uint {
-        self.partial_ovector.as_slice()[(n * 2) as uint] as uint
+        self.partial_ovector[(n * 2) as uint] as uint
     }
 
     /// Returns the end index within the subject string of capture group `n`.
     pub fn group_end(&self, n: uint) -> uint {
-        self.partial_ovector.as_slice()[(n * 2 + 1) as uint] as uint
+        self.partial_ovector[(n * 2 + 1) as uint] as uint
     }
 
     /// Returns the length of the substring for capture group `n`.
@@ -784,7 +784,7 @@ impl<'a> Iterator<Match<'a>> for MatchIterator<'a> {
                 let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, &self.options, self.ovector.as_mut_ptr(), self.ovector.len() as c_int);
                 if rc >= 0 {
                     // Update the iterator state.
-                    self.offset = self.ovector.as_slice()[1];
+                    self.offset = self.ovector[1];
 
                     Some(Match {
                         subject: self.subject,
