@@ -86,9 +86,9 @@ pub unsafe fn pcre_free_study(extra: *mut ::PcreExtra) {
     native::pcre_free_study(extra);
 }
 
-pub unsafe fn pcre_fullinfo(code: *const pcre, extra: *const ::PcreExtra, what: fullinfo_field, where: *mut c_void) {
+pub unsafe fn pcre_fullinfo(code: *const pcre, extra: *const ::PcreExtra, what: fullinfo_field, where_: *mut c_void) {
     assert!(code.is_not_null());
-    let rc = native::pcre_fullinfo(code, extra, what, where);
+    let rc = native::pcre_fullinfo(code, extra, what, where_);
     if rc < 0 && rc != PCRE_ERROR_NULL {
         fail!("pcre_fullinfo");
     }
