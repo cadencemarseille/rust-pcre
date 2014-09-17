@@ -15,7 +15,7 @@ use rustc::driver::driver::host_triple;
 use std::from_str::{from_str};
 use std::io;
 use std::io::{Command, FilePermission};
-use std::io::fs::{mkdir, File};
+use std::io::fs::{mkdir, File, PathExtensions};
 use std::option::{Option};
 use std::os;
 use std::str;
