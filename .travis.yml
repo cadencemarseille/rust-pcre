@@ -14,7 +14,6 @@ install:
   - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcrecpp0gsa_*.deb
   - sudo apt-get --download-only install libpcre3gsa-dev
   - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa-dev_*.deb
-  - curl http://www.rust-lang.org/rustup.sh | sudo sh -
 script:
   - rustc --version
   - make install
