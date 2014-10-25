@@ -80,7 +80,7 @@ fn main() {
             let output_len = pcre_config_output.output.len();
             let prefix_str = unsafe { string::raw::from_buf_len(output_ptr, output_len) };
             // `pcre-config` adds a newline to the end, which we need to trim away.
-            String::from_str(prefix_str.as_slice().trim()).append("/lib")
+            String::from_str(prefix_str.as_slice().trim()).push_str("/lib")
         },
         Some(pcre_libdir) => pcre_libdir
     };
