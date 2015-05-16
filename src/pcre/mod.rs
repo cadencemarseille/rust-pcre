@@ -361,7 +361,7 @@ impl Pcre {
                     }),
                     Ok(mut_code) => {
                         let code = mut_code as *const detail::pcre;
-                        assert!(code.is_not_null());
+                        assert!(!code.is_null());
                         // Take a reference.
                         detail::pcre_refcount(code as *mut detail::pcre, 1);
 
@@ -641,7 +641,7 @@ impl Pcre {
 
                 let extra = detail::pcre_study(self.code, options);
                 self.extra = extra;
-                extra.is_not_null()
+                !extra.is_null()
             }
         }
     }

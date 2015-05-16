@@ -37,7 +37,7 @@ pub static PCRE_INFO_NAMECOUNT: fullinfo_field = 8;
 pub static PCRE_INFO_NAMETABLE: fullinfo_field = 9;
 
 pub unsafe fn pcre_compile(pattern: *const c_char, options: &EnumSet<::CompileOption>, tableptr: *const c_uchar) -> Result<*mut pcre, (Option<String>, c_int)> {
-    assert!(pattern.is_not_null());
+    assert!(!pattern.is_null());
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as compile_options)) | PCRE_UTF8 | PCRE_NO_UTF8_CHECK;
     let mut err: *const c_char = ptr::null();
     let mut erroffset: c_int = 0;
@@ -56,7 +56,7 @@ pub unsafe fn pcre_compile(pattern: *const c_char, options: &EnumSet<::CompileOp
             Some(err_str) => Err((Some(err_str.to_owned()), erroffset))
         }
     } else {
-        assert!(code.is_not_null());
+        assert!(!code.is_null());
         assert_eq!(erroffset, 0);
 
         Ok(code)
@@ -64,7 +64,7 @@ pub unsafe fn pcre_compile(pattern: *const c_char, options: &EnumSet<::CompileOp
 }
 
 pub unsafe fn pcre_exec(code: *const pcre, extra: *const ::PcreExtra, subject: *const c_char, length: c_int, startoffset: c_int, options: &EnumSet<::ExecOption>, ovector: *mut c_int, ovecsize: c_int) -> c_int {
-    assert!(code.is_not_null());
+    assert!(!code.is_null());
     assert!(ovecsize >= 0 && ovecsize % 3 == 0);
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as compile_options)) | PCRE_NO_UTF8_CHECK;
     let rc = native::pcre_exec(code, extra, subject, length, startoffset, converted_options, ovector, ovecsize);
@@ -86,7 +86,7 @@ pub unsafe fn pcre_free_study(extra: *mut ::PcreExtra) {
 }
 
 pub unsafe fn pcre_fullinfo(code: *const pcre, extra: *const ::PcreExtra, what: fullinfo_field, where_: *mut c_void) {
-    assert!(code.is_not_null());
+    assert!(!code.is_null());
     let rc = native::pcre_fullinfo(code, extra, what, where_);
     if rc < 0 && rc != PCRE_ERROR_NULL {
         panic!("pcre_fullinfo");
@@ -94,7 +94,7 @@ pub unsafe fn pcre_fullinfo(code: *const pcre, extra: *const ::PcreExtra, what: 
 }
 
 pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
-    assert!(code.is_not_null());
+    assert!(!code.is_null());
     let curr_refcount = native::pcre_refcount(code, 0);
     if curr_refcount + adjust < 0 {
         panic!("refcount underflow");
@@ -105,7 +105,7 @@ pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
 }
 
 pub unsafe fn pcre_study(code: *const ::detail::pcre, options: &EnumSet<::StudyOption>) -> *mut ::PcreExtra {
-    assert!(code.is_not_null());
+    assert!(!code.is_null());
     let converted_options = options.iter().fold(0, |converted_options, option| converted_options | (option as study_options));
     let mut err: *const c_char = ptr::null();
     let extra = native::pcre_study(code, converted_options, &mut err);
@@ -114,7 +114,7 @@ pub unsafe fn pcre_study(code: *const ::detail::pcre, options: &EnumSet<::StudyO
     // set to NULL. Otherwise it is set to point to a textual error message. This is
     // a static string that is part of the library. You must not try to free it."
     // http://pcre.org/pcre.txt
-    if err.is_not_null() {
+    if !err.is_null() {
         let err_cstring = CString::new(err, false);
         match err_cstring.as_str() {
             None          => error!("pcre_study() failed"),
