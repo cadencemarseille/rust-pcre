@@ -6,14 +6,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+extern crate enum_set;
 extern crate libc;
-extern crate collections;
 #[macro_use]
 extern crate log;
 
 use collections::{BTreeMap};
-use collections::enum_set::{CLike, EnumSet};
 use collections::vec::{Vec};
+use enum_set::{CLike, EnumSet};
 use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
 use std::ffi;
 use std::ffi::{CString};
@@ -165,7 +165,7 @@ pub struct MatchIterator<'a> {
 }
 
 impl CLike for CompileOption {
-    fn from_usize(n: usize) -> CompileOption {
+    unsafe fn from_u32(n: u32) -> CompileOption {
         use CompileOption::*;
         match n {
             1 => Caseless,
@@ -193,7 +193,8 @@ impl CLike for CompileOption {
         }
     }
 
-    fn to_usize(&self) -> usize {
+    fn to_u32(&self) -> u32 {
+        use CompileOption::*;
         match *self {
             Caseless => 1,
             Multiline => 2,
@@ -221,7 +222,7 @@ impl CLike for CompileOption {
 }
 
 impl CLike for ExecOption {
-    fn from_usize(n: usize) -> ExecOption {
+    unsafe fn from_u32(n: u32) -> ExecOption {
         use ExecOption::*;
         match n {
             1 => ExecAnchored,
@@ -243,7 +244,8 @@ impl CLike for ExecOption {
         }
     }
 
-    fn to_usize(&self) -> usize {
+    fn to_u32(&self) -> u32 {
+        use ExecOption::*;
         match *self {
             ExecAnchored => 1,
             ExecNotBol => 2,
@@ -265,7 +267,7 @@ impl CLike for ExecOption {
 }
 
 impl CLike for ExtraOption {
-    fn from_usize(n: usize) -> ExtraOption {
+    unsafe fn from_u32(n: u32) -> ExtraOption {
         use ExtraOption::*;
         match n {
             1 => ExtraStudyData,
@@ -279,7 +281,8 @@ impl CLike for ExtraOption {
         }
     }
 
-    fn to_usize(&self) -> usize {
+    fn to_u32(&self) -> u32 {
+        use ExtraOption::*;
         match *self {
             ExtraStudyData => 1,
             ExtraMatchLimit => 2,
@@ -293,7 +296,7 @@ impl CLike for ExtraOption {
 }
 
 impl CLike for StudyOption {
-    fn from_usize(n: usize) -> StudyOption {
+    unsafe fn from_u32(n: u32) -> StudyOption {
         use StudyOption::*;
         match n {
             1 => StudyJitCompile,
@@ -304,7 +307,8 @@ impl CLike for StudyOption {
         }
     }
 
-    fn to_usize(&self) -> usize {
+    fn to_u32(&self) -> u32 {
+        use StudyOption::*;
         match *self {
             StudyJitCompile => 1,
             StudyJitPartialSoftCompile => 2,

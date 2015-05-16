@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use collections::enum_set::{EnumSet};
+use enum_set::{EnumSet};
 use libc::{c_char, c_int, c_uchar, c_void};
 use std::ffi::{CStr};
 use std::ptr;
