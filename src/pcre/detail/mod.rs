@@ -8,9 +8,8 @@
 
 use collections::enum_set::{EnumSet};
 use libc::{c_char, c_int, c_uchar, c_void};
-use std::c_str::{CString};
+use std::ffi::{CString};
 use std::ptr;
-use std::ptr::{RawPtr};
 use std::result::{Result};
 use std::string::{String};
 

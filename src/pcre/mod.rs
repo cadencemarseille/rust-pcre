@@ -15,8 +15,8 @@ use collections::{BTreeMap};
 use collections::enum_set::{CLike, EnumSet};
 use collections::vec::{Vec};
 use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
-use std::c_str;
-use std::c_str::{CString};
+use std::ffi;
+use std::ffi::{CString};
 use std::mem;
 use std::option::{Option};
 use std::ptr;
@@ -154,7 +154,7 @@ pub struct MatchIterator<'a> {
 
     /// The subject string as a `CString`. In MatchIterator's next() method, this is re-used
     /// each time so that only one C-string copy of the subject string needs to be allocated.
-    subject_cstring: c_str::CString,
+    subject_cstring: ffi::CString,
 
     offset: c_int,
 
@@ -590,7 +590,7 @@ impl Pcre {
             let mut i = 0;
             while i < name_count {
                 let n: usize = ((ptr::read(tabptr) as usize) << 8) | (ptr::read(tabptr.offset(1)) as usize);
-                let name_cstring = c_str::CString::new(tabptr.offset(2) as *const c_char, false);
+                let name_cstring = ffi::CString::new(tabptr.offset(2) as *const c_char, false);
                 let name: String = name_cstring.as_str().unwrap().to_owned();
                 // TODO Avoid the double lookup.
                 // https://github.com/mozilla/rust/issues/9068
