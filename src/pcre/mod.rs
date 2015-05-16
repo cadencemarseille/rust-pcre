@@ -171,54 +171,54 @@ pub struct MatchIterator<'a> {
 impl CLike for CompileOption {
     fn from_uint(n: uint) -> CompileOption {
         match n {
-            1u => Caseless,
-            2u => Multiline,
-            3u => DotAll,
-            4u => Extended,
-            5u => Anchored,
-            6u => DollarEndOnly,
-            7u => Extra,
-            8u => Ungreedy,
-            9u => NoAutoCapture,
-            10u => AutoCallout,
-            11u => FirstLine,
-            12u => DupNames,
-            13u => NewlineCR,
-            14u => NewlineLF,
-            15u => NewlineCRLF,
-            16u => NewlineAny,
-            17u => NewlineAnyCRLF,
-            18u => BsrAnyCRLF,
-            19u => BsrUnicode,
-            20u => JavaScriptCompat,
-            21u => Ucp,
+            1 => Caseless,
+            2 => Multiline,
+            3 => DotAll,
+            4 => Extended,
+            5 => Anchored,
+            6 => DollarEndOnly,
+            7 => Extra,
+            8 => Ungreedy,
+            9 => NoAutoCapture,
+            10 => AutoCallout,
+            11 => FirstLine,
+            12 => DupNames,
+            13 => NewlineCR,
+            14 => NewlineLF,
+            15 => NewlineCRLF,
+            16 => NewlineAny,
+            17 => NewlineAnyCRLF,
+            18 => BsrAnyCRLF,
+            19 => BsrUnicode,
+            20 => JavaScriptCompat,
+            21 => Ucp,
             _ => panic!("unknown CompileOption number {}", n)
         }
     }
 
     fn to_uint(&self) -> uint {
         match *self {
-            Caseless => 1u,
-            Multiline => 2u,
-            DotAll => 3u,
-            Extended => 4u,
-            Anchored => 5u,
-            DollarEndOnly => 6u,
-            Extra => 7u,
-            Ungreedy => 8u,
-            NoAutoCapture => 9u,
-            AutoCallout => 10u,
-            FirstLine => 11u,
-            DupNames => 12u,
-            NewlineCR => 13u,
-            NewlineLF => 14u,
-            NewlineCRLF => 15u,
-            NewlineAny => 16u,
-            NewlineAnyCRLF => 17u,
-            BsrAnyCRLF => 18u,
-            BsrUnicode => 19u,
-            JavaScriptCompat => 20u,
-            Ucp => 21u
+            Caseless => 1,
+            Multiline => 2,
+            DotAll => 3,
+            Extended => 4,
+            Anchored => 5,
+            DollarEndOnly => 6,
+            Extra => 7,
+            Ungreedy => 8,
+            NoAutoCapture => 9,
+            AutoCallout => 10,
+            FirstLine => 11,
+            DupNames => 12,
+            NewlineCR => 13,
+            NewlineLF => 14,
+            NewlineCRLF => 15,
+            NewlineAny => 16,
+            NewlineAnyCRLF => 17,
+            BsrAnyCRLF => 18,
+            BsrUnicode => 19,
+            JavaScriptCompat => 20,
+            Ucp => 21
         }
     }
 }
@@ -226,42 +226,42 @@ impl CLike for CompileOption {
 impl CLike for ExecOption {
     fn from_uint(n: uint) -> ExecOption {
         match n {
-            1u => ExecAnchored,
-            2u => ExecNotBol,
-            3u => ExecNotEol,
-            4u => ExecNotEmpty,
-            5u => ExecPartialSoft,
-            6u => ExecNewlineCR,
-            7u => ExecNewlineLF,
-            8u => ExecNewlineCRLF,
-            9u => ExecNewlineAny,
-            10u => ExecNewlineAnyCRLF,
-            11u => ExecBsrAnyCRLF,
-            12u => ExecBsrUnicode,
-            13u => ExecNoStartOptimise,
-            14u => ExecPartialHard,
-            15u => ExecNotEmptyAtStart,
+            1 => ExecAnchored,
+            2 => ExecNotBol,
+            3 => ExecNotEol,
+            4 => ExecNotEmpty,
+            5 => ExecPartialSoft,
+            6 => ExecNewlineCR,
+            7 => ExecNewlineLF,
+            8 => ExecNewlineCRLF,
+            9 => ExecNewlineAny,
+            10 => ExecNewlineAnyCRLF,
+            11 => ExecBsrAnyCRLF,
+            12 => ExecBsrUnicode,
+            13 => ExecNoStartOptimise,
+            14 => ExecPartialHard,
+            15 => ExecNotEmptyAtStart,
             _ => panic!("unknown ExecOption number {}", n)
         }
     }
 
     fn to_uint(&self) -> uint {
         match *self {
-            ExecAnchored => 1u,
-            ExecNotBol => 2u,
-            ExecNotEol => 3u,
-            ExecNotEmpty => 4u,
-            ExecPartialSoft => 5u,
-            ExecNewlineCR => 6u,
-            ExecNewlineLF => 7u,
-            ExecNewlineCRLF => 8u,
-            ExecNewlineAny => 9u,
-            ExecNewlineAnyCRLF => 10u,
-            ExecBsrAnyCRLF => 11u,
-            ExecBsrUnicode => 12u,
-            ExecNoStartOptimise => 13u,
-            ExecPartialHard => 14u,
-            ExecNotEmptyAtStart => 15u
+            ExecAnchored => 1,
+            ExecNotBol => 2,
+            ExecNotEol => 3,
+            ExecNotEmpty => 4,
+            ExecPartialSoft => 5,
+            ExecNewlineCR => 6,
+            ExecNewlineLF => 7,
+            ExecNewlineCRLF => 8,
+            ExecNewlineAny => 9,
+            ExecNewlineAnyCRLF => 10,
+            ExecBsrAnyCRLF => 11,
+            ExecBsrUnicode => 12,
+            ExecNoStartOptimise => 13,
+            ExecPartialHard => 14,
+            ExecNotEmptyAtStart => 15
         }
     }
 }
@@ -269,26 +269,26 @@ impl CLike for ExecOption {
 impl CLike for ExtraOption {
     fn from_uint(n: uint) -> ExtraOption {
         match n {
-            1u => ExtraStudyData,
-            2u => ExtraMatchLimit,
-            3u => ExtraCalloutData,
-            4u => ExtraTables,
-            5u => ExtraMatchLimitRecursion,
-            6u => ExtraMark,
-            7u => ExtraExecutableJit,
+            1 => ExtraStudyData,
+            2 => ExtraMatchLimit,
+            3 => ExtraCalloutData,
+            4 => ExtraTables,
+            5 => ExtraMatchLimitRecursion,
+            6 => ExtraMark,
+            7 => ExtraExecutableJit,
             _ => panic!("unknown ExtraOption number {}", n)
         }
     }
 
     fn to_uint(&self) -> uint {
         match *self {
-            ExtraStudyData => 1u,
-            ExtraMatchLimit => 2u,
-            ExtraCalloutData => 3u,
-            ExtraTables => 4u,
-            ExtraMatchLimitRecursion => 5u,
-            ExtraMark => 6u,
-            ExtraExecutableJit => 7u
+            ExtraStudyData => 1,
+            ExtraMatchLimit => 2,
+            ExtraCalloutData => 3,
+            ExtraTables => 4,
+            ExtraMatchLimitRecursion => 5,
+            ExtraMark => 6,
+            ExtraExecutableJit => 7
         }
     }
 }
@@ -296,20 +296,20 @@ impl CLike for ExtraOption {
 impl CLike for StudyOption {
     fn from_uint(n: uint) -> StudyOption {
         match n {
-            1u => StudyJitCompile,
-            2u => StudyJitPartialSoftCompile,
-            3u => StudyJitPartialHardCompile,
-            4u => StudyExtraNeeded,
+            1 => StudyJitCompile,
+            2 => StudyJitPartialSoftCompile,
+            3 => StudyJitPartialHardCompile,
+            4 => StudyExtraNeeded,
             _ => panic!("unknown StudyOption number {}", n)
         }
     }
 
     fn to_uint(&self) -> uint {
         match *self {
-            StudyJitCompile => 1u,
-            StudyJitPartialSoftCompile => 2u,
-            StudyJitPartialHardCompile => 3u,
-            StudyExtraNeeded => 4u
+            StudyJitCompile => 1,
+            StudyJitPartialSoftCompile => 2,
+            StudyJitPartialHardCompile => 3,
+            StudyExtraNeeded => 4
         }
     }
 }
@@ -587,7 +587,7 @@ impl Pcre {
 
             let mut name_table: TreeMap<String, Vec<uint>> = TreeMap::new();
 
-            let mut i = 0u;
+            let mut i = 0;
             while i < name_count {
                 let n: uint = (ptr::read(tabptr) as uint << 8) | (ptr::read(tabptr.offset(1)) as uint);
                 let name_cstring = c_str::CString::new(tabptr.offset(2) as *const c_char, false);
