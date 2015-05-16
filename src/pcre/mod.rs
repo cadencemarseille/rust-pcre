@@ -13,8 +13,6 @@ extern crate log;
 
 use enum_set::{CLike, EnumSet};
 use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
-use std::ffi;
-use std::ffi::{CString};
 use std::collections::{BTreeMap};
 use std::ffi::{CStr, CString};
 use std::option::{Option};
@@ -153,7 +151,7 @@ pub struct MatchIterator<'a> {
 
     /// The subject string as a `CString`. In MatchIterator's next() method, this is re-used
     /// each time so that only one C-string copy of the subject string needs to be allocated.
-    subject_cstring: ffi::CString,
+    subject_cstring: CString,
 
     offset: c_int,
 
@@ -353,37 +351,36 @@ impl Pcre {
     /// * `options` - Bitwise-OR'd compilation options. See the libpcre manpages,
     ///   `man 3 pcre_compile`, for more information.
     pub fn compile_with_options(pattern: &str, options: &EnumSet<CompileOption>) -> Result<Pcre, CompilationError> {
-        pattern.with_c_str(|pattern_c_str| {
-            unsafe {
-                // Use the default character tables.
-                let tableptr: *const c_uchar = ptr::null();
-                match detail::pcre_compile(pattern_c_str, options, tableptr) {
-                    Err((opt_err, erroffset)) => Err(CompilationError {
-                        opt_err: opt_err,
-                        erroffset: erroffset
-                    }),
-                    Ok(mut_code) => {
-                        let code = mut_code as *const detail::pcre;
-                        assert!(!code.is_null());
-                        // Take a reference.
-                        detail::pcre_refcount(code as *mut detail::pcre, 1);
+        let pattern_cstring = CString::new(pattern).unwrap();
+        unsafe {
+            // Use the default character tables.
+            let tableptr: *const c_uchar = ptr::null();
+            match detail::pcre_compile(pattern_cstring.as_ptr(), options, tableptr) {
+                Err((opt_err, erroffset)) => Err(CompilationError {
+                    opt_err: opt_err,
+                    erroffset: erroffset
+                }),
+                Ok(mut_code) => {
+                    let code = mut_code as *const detail::pcre;
+                    assert!(!code.is_null());
+                    // Take a reference.
+                    detail::pcre_refcount(code as *mut detail::pcre, 1);
 
-                        let extra: *mut PcreExtra = ptr::null_mut();
+                    let extra: *mut PcreExtra = ptr::null_mut();
 
-                        let mut capture_count: c_int = 0;
-                        detail::pcre_fullinfo(code, extra as *const PcreExtra, detail::PCRE_INFO_CAPTURECOUNT, 
-                            &mut capture_count as *mut c_int as *mut c_void);
+                    let mut capture_count: c_int = 0;
+                    detail::pcre_fullinfo(code, extra as *const PcreExtra, detail::PCRE_INFO_CAPTURECOUNT, 
+                        &mut capture_count as *mut c_int as *mut c_void);
 
-                        Ok(Pcre {
-                            code: code,
-                            extra: extra,
-                            capture_count_: capture_count,
-                            mark_: ptr::null_mut()
-                        })
-                    }
+                    Ok(Pcre {
+                        code: code,
+                        extra: extra,
+                        capture_count_: capture_count,
+                        mark_: ptr::null_mut()
+                    })
                 }
             }
-        })
+        }
     }
 
     /// Returns the number of capture groups in the regular expression, including one for
@@ -494,18 +491,18 @@ impl Pcre {
         let mut ovector = vec![0 as c_int; ovecsize as usize];
 
         unsafe {
-            subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
-                let rc = detail::pcre_exec(self.code, self.extra as *const PcreExtra, subject_c_str, subject.len() as c_int, startoffset as c_int, options, ovector.as_mut_ptr(), ovecsize as c_int);
-                if rc >= 0 {
-                    Some(Match {
-                        subject: subject,
-                        partial_ovector: Vec::from_slice(ovector.slice_to(((self.capture_count_ + 1) * 2) as usize)),
-                        string_count_: rc
-                    })
-                } else {
-                    None
-                }
-            })
+            // TODO Check memory allocations
+            let subject_cstring = CString::from_vec_unchecked(Vec::from(subject));
+            let rc = detail::pcre_exec(self.code, self.extra as *const PcreExtra, subject_cstring.as_ptr(), subject.len() as c_int, startoffset as c_int, options, ovector.as_mut_ptr(), ovecsize as c_int);
+            if rc >= 0 {
+                Some(Match {
+                    subject: subject,
+                    partial_ovector: ovector[..(((self.capture_count_ + 1) * 2) as usize)].to_vec(),
+                    string_count_: rc
+                })
+            } else {
+                None
+            }
         }
     }
 
@@ -554,10 +551,9 @@ impl Pcre {
                 extra: self.extra as *const PcreExtra,
                 capture_count: self.capture_count_,
                 subject: subject,
-                subject_cstring: subject.to_c_str_unchecked(), // the subject string can contain NUL bytes
+                subject_cstring: CString::from_vec_unchecked(Vec::from(subject)), // the subject string can contain NUL bytes
                 offset: 0,
                 options: options.clone(),
-                // https://github.com/rust-lang/rfcs/pull/832
                 ovector: vec![0 as c_int; ovecsize as usize]
             }
         }
@@ -591,8 +587,9 @@ impl Pcre {
             let mut i = 0;
             while i < name_count {
                 let n: usize = ((ptr::read(tabptr) as usize) << 8) | (ptr::read(tabptr.offset(1)) as usize);
-                let name_cstring = ffi::CString::new(tabptr.offset(2) as *const c_char, false);
-                let name: String = name_cstring.as_str().unwrap().to_owned();
+                let name_cstr = CStr::from_ptr(tabptr.offset(2) as *const c_char);
+                // TODO Check memory allocations
+                let name: String = String::from_utf8(Vec::from(name_cstr.to_bytes())).unwrap();
                 // TODO Avoid the double lookup.
                 // https://github.com/mozilla/rust/issues/9068
                 if !name_table.contains_key(&name) {
@@ -750,7 +747,7 @@ impl<'a> Clone for MatchIterator<'a> {
                 extra: self.extra,
                 capture_count: self.capture_count,
                 subject: self.subject,
-                subject_cstring: self.subject.to_c_str_unchecked(),
+                subject_cstring: self.subject_cstring.clone(),
                 offset: self.offset,
                 options: self.options.clone(),
                 ovector: self.ovector.clone()
@@ -779,24 +776,19 @@ impl<'a> Iterator for MatchIterator<'a> {
     #[inline]
     fn next(&mut self) -> Option<Match<'a>> {
         unsafe {
-            // Create a new, non-owning copy of `self.subject_cstring` to avoid
-            // error: closure requires unique access to `self` but `self.subject_cstring` is already borrowed
-            let subject_cstring_copy = self.subject_cstring.with_ref(|subject_c_str| CString::new(subject_c_str, false));
-            subject_cstring_copy.with_ref(|subject_c_str| -> Option<Match<'a>> {
-                let rc = detail::pcre_exec(self.code, self.extra, subject_c_str, self.subject.len() as c_int, self.offset, &self.options, self.ovector.as_mut_ptr(), self.ovector.len() as c_int);
-                if rc >= 0 {
-                    // Update the iterator state.
-                    self.offset = self.ovector[1];
+            let rc = detail::pcre_exec(self.code, self.extra, self.subject_cstring.as_ptr(), self.subject.len() as c_int, self.offset, &self.options, self.ovector.as_mut_ptr(), self.ovector.len() as c_int);
+            if rc >= 0 {
+                // Update the iterator state.
+                self.offset = self.ovector[1];
 
-                    Some(Match {
-                        subject: self.subject,
-                        partial_ovector: Vec::from_slice(self.ovector.slice_to(((self.capture_count + 1) * 2) as usize)),
-                        string_count_: rc
-                    })
-                } else {
-                    None
-                }
-            })
+                Some(Match {
+                    subject: self.subject,
+                    partial_ovector: self.ovector[..(((self.capture_count + 1) * 2) as usize)].to_vec(),
+                    string_count_: rc
+                })
+            } else {
+                None
+            }
         }
     }
 }
