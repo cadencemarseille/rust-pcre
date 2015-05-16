@@ -74,8 +74,8 @@ pub enum ExecOption {
     ExecNotEmptyAtStart = 0x10000000
 }
 
-pub static ExecPartial: ExecOption = ExecPartialSoft;
-pub static ExecNoStartOptimize: ExecOption = ExecNoStartOptimise;
+pub static ExecPartial: ExecOption = ExecOption::ExecPartialSoft;
+pub static ExecNoStartOptimize: ExecOption = ExecOption::ExecNoStartOptimise;
 
 #[derive(Clone)]
 pub enum ExtraOption {
@@ -170,6 +170,7 @@ pub struct MatchIterator<'a> {
 
 impl CLike for CompileOption {
     fn from_usize(n: usize) -> CompileOption {
+        use CompileOption::*;
         match n {
             1 => Caseless,
             2 => Multiline,
@@ -225,6 +226,7 @@ impl CLike for CompileOption {
 
 impl CLike for ExecOption {
     fn from_usize(n: usize) -> ExecOption {
+        use ExecOption::*;
         match n {
             1 => ExecAnchored,
             2 => ExecNotBol,
@@ -268,6 +270,7 @@ impl CLike for ExecOption {
 
 impl CLike for ExtraOption {
     fn from_usize(n: usize) -> ExtraOption {
+        use ExtraOption::*;
         match n {
             1 => ExtraStudyData,
             2 => ExtraMatchLimit,
@@ -295,6 +298,7 @@ impl CLike for ExtraOption {
 
 impl CLike for StudyOption {
     fn from_usize(n: usize) -> StudyOption {
+        use StudyOption::*;
         match n {
             1 => StudyJitCompile,
             2 => StudyJitPartialSoftCompile,
@@ -665,7 +669,7 @@ impl PcreExtra {
     ///
     /// The default value for this limit is set when PCRE is built. The default default is 10 million.
     pub fn match_limit(&self) -> Option<usize> {
-        if (self.flags & (ExtraMatchLimit as c_ulong)) == 0 {
+        if (self.flags & (ExtraOption::ExtraMatchLimit as c_ulong)) == 0 {
             None
         } else {
             Some(self.match_limit_ as usize)
@@ -676,7 +680,7 @@ impl PcreExtra {
     ///
     /// The default value for this limit is set when PCRE is built.
     pub fn match_limit_recursion(&self) -> Option<usize> {
-        if (self.flags & (ExtraMatchLimitRecursion as c_ulong)) == 0 {
+        if (self.flags & (ExtraOption::ExtraMatchLimitRecursion as c_ulong)) == 0 {
             None
         } else {
             Some(self.match_limit_recursion_ as usize)
@@ -685,25 +689,25 @@ impl PcreExtra {
 
     /// Sets the mark field.
     pub unsafe fn set_mark(&mut self, mark: &mut *mut c_uchar) {
-        self.flags |= ExtraMark as c_ulong;
+        self.flags |= ExtraOption::ExtraMark as c_ulong;
         self.mark = mark as *mut *mut c_uchar;
     }
 
     /// Sets the match limit to `limit` instead of using PCRE's default.
     pub fn set_match_limit(&mut self, limit: u32) {
-        self.flags |= ExtraMatchLimit as c_ulong;
+        self.flags |= ExtraOption::ExtraMatchLimit as c_ulong;
         self.match_limit_ = limit as c_ulong;
     }
 
     /// Sets the recursion depth limit to `limit` instead of using PCRE's default.
     pub fn set_match_limit_recursion(&mut self, limit: u32) {
-        self.flags |= ExtraMatchLimitRecursion as c_ulong;
+        self.flags |= ExtraOption::ExtraMatchLimitRecursion as c_ulong;
         self.match_limit_ = limit as c_ulong;
     }
 
     /// Unsets the mark field. PCRE will not save mark names when matching the compiled regular expression.
     pub fn unset_mark(&mut self) {
-        self.flags &= !(ExtraMark as c_ulong);
+        self.flags &= !(ExtraOption::ExtraMark as c_ulong);
         self.mark = ptr::mut_null();
     }
 }
