@@ -8,7 +8,8 @@
 
 extern crate libc;
 extern crate collections;
-#[phase(plugin, link)] extern crate log;
+#[macro_use]
+extern crate log;
 
 use collections::{BTreeMap};
 use collections::enum_set::{CLike, EnumSet};
