@@ -369,7 +369,7 @@ impl Pcre {
                         // Take a reference.
                         detail::pcre_refcount(code as *mut detail::pcre, 1);
 
-                        let extra: *mut PcreExtra = ptr::mut_null();
+                        let extra: *mut PcreExtra = ptr::null_mut();
 
                         let mut capture_count: c_int = 0;
                         detail::pcre_fullinfo(code, extra as *const PcreExtra, detail::PCRE_INFO_CAPTURECOUNT, 
@@ -379,7 +379,7 @@ impl Pcre {
                             code: code,
                             extra: extra,
                             capture_count_: capture_count,
-                            mark_: ptr::mut_null()
+                            mark_: ptr::null_mut()
                         })
                     }
                 }
@@ -641,7 +641,7 @@ impl Pcre {
             } else {
                 // Free any current study data.
                 detail::pcre_free_study(self.extra as *mut PcreExtra);
-                self.extra = ptr::mut_null();
+                self.extra = ptr::null_mut();
 
                 let extra = detail::pcre_study(self.code, options);
                 self.extra = extra;
@@ -658,7 +658,7 @@ impl Drop for Pcre {
                 detail::pcre_free_study(self.extra as *mut PcreExtra);
                 detail::pcre_free(self.code as *mut detail::pcre as *mut c_void);
             }
-            self.extra = ptr::mut_null();
+            self.extra = ptr::null_mut();
             self.code = ptr::null();
         }
     }
@@ -708,7 +708,7 @@ impl PcreExtra {
     /// Unsets the mark field. PCRE will not save mark names when matching the compiled regular expression.
     pub fn unset_mark(&mut self) {
         self.flags &= !(ExtraOption::ExtraMark as c_ulong);
-        self.mark = ptr::mut_null();
+        self.mark = ptr::null_mut();
     }
 }
 
