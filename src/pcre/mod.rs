@@ -332,7 +332,7 @@ impl std::fmt::Debug for CompilationError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self.opt_err {
             None => write!(f, "compilation failed at offset {}", self.erroffset as usize),
-            Some(ref s) => write!(f, "compilation failed at offset {}: {}", self.erroffset as usize, s.as_slice())
+            Some(ref s) => write!(f, "compilation failed at offset {}: {}", self.erroffset as usize, s)
         }
     }
 }
