@@ -719,17 +719,17 @@ impl<'a> Match<'a> {
 
     /// Returns the length of the substring for capture group `n`.
     pub fn group_len(&self, n: usize) -> usize {
-        let group_offsets = self.partial_ovector.slice_from((n * 2) as usize);
+        let group_offsets = &self.partial_ovector[((n * 2) as usize)..];
         (group_offsets[1] - group_offsets[0]) as usize
     }
 
     /// Returns the substring for capture group `n` as a slice.
     #[inline]
     pub fn group(&'a self, n: usize) -> &'a str {
-        let group_offsets = self.partial_ovector.slice_from((n * 2) as usize);
+        let group_offsets = &self.partial_ovector[..((n * 2) as usize)];
         let start = group_offsets[0];
         let end = group_offsets[1];
-        self.subject.as_slice().slice(start as usize, end as usize)
+        &self.subject[(start as usize)..(end as usize)]
     }
 
     /// Returns the number of substrings captured.
