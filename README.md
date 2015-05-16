@@ -1,11 +1,11 @@
 # rust-pcre
-[Rust](https://github.com/mozilla/rust) 0.12.0-pre wrapper for [libpcre](http://pcre.org/) 8.20+.
+[Rust](https://github.com/rust-lang/rust) 1.0 wrapper for [libpcre](http://pcre.org/) 8.20+.
 
-[![Build Status](https://travis-ci.org/cadencemarseille/rust-pcre.png?branch=master)](https://travis-ci.org/cadencemarseille/rust-pcre) (with [Hans Jørgen Hoel's rust-nightly](http://hiho.io/rust-ci/))
+[![Build Status](https://travis-ci.org/cadencemarseille/rust-pcre.png?branch=master)](https://travis-ci.org/cadencemarseille/rust-pcre)
 
 ## Quick Start
 
-**Note:** If you see linker errors when running `make install` (for example, "undefined reference to \`pcre_free_study'"), you might need to export an environment variable, `PCRE_LIBDIR`, that points to the directory containing libpcre's import library.
+**Note:** If you see linker errors (for example, "undefined reference to \`pcre_free_study'"), you might need to export an environment variable, `PCRE_LIBDIR`, that points to the directory containing libpcre's import library.
 
 ### Debian
 
@@ -60,8 +60,8 @@ The basic use of the library involves compiling a pattern regular expression:
 
 You can also pass options:
 
-    let mut compile_options: EnumSet<CompileOption> = EnumSet::empty();
-    compile_options.add(pcre::Caseless)
+    let mut compile_options: EnumSet<CompileOption> = EnumSet::new();
+    compile_options.add(CompileOption::Caseless)
     let re = Pcre::compile_with_options(pattern, &compile_options).unwrap();
 
 To test against a subject string, use one of the exec(), exec_from(), or exec_from_with_options() methods. For example:
@@ -74,12 +74,5 @@ To test against a subject string, use one of the exec(), exec_from(), or exec_fr
 
 See the [source of `pcredemo`](https://github.com/cadencemarseille/rust-pcre/blob/master/src/pcredemo/main.rs) for a complete example.
 
-You can view the latest documentation online at: http://www.rust-ci.org/cadencemarseille/rust-pcre/doc/pcre/
-
-## Development
-
-Patches and GitHub pull requests (PRs) are always welcome.
-
-To run the tests:
-
-    make test
+You can view the latest documentation online at:  
+http://www.rust-ci.org/cadencemarseille/rust-pcre/doc/pcre/
