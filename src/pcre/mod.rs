@@ -752,7 +752,7 @@ impl<'a> Clone for MatchIterator<'a> {
                 subject: self.subject,
                 subject_cstring: self.subject.to_c_str_unchecked(),
                 offset: self.offset,
-                options: self.options,
+                options: self.options.clone(),
                 ovector: self.ovector.clone()
             }
         }
