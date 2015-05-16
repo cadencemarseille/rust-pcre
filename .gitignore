@@ -1,14 +1,4 @@
-*.dSYM
-*.dylib
 .DS_Store
-*.swp
-aclocal.m4
-autom4te.cache
-config.log
-configure
-
-/.rust
-/bin
-/build
+Cargo.lock
 /doc
-/lib
+/target

@@ -15,11 +15,10 @@ install:
   - sudo apt-get --download-only install libpcre3gsa-dev
   - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa-dev_*.deb
 script:
-  - rustc --version
-  - make install
-  - make doc
-  - make test "PCRE_LIBDIR=$PCRE_LIBDIR"
+  - cargo doc
 after_script:
+  - # the doc directory needs to be in the root for rust-ci
+  - mv target/doc doc
   - curl http://www.rust-ci.org/artifacts/put?t=$RUSTCI_TOKEN | sh
 notifications:
   email:
