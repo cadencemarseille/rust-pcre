@@ -30,7 +30,7 @@ use std::string::{String};
 
 mod detail;
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub enum CompileOption {
     Caseless = 0x00000001,
     Multiline = 0x00000002,
@@ -55,7 +55,7 @@ pub enum CompileOption {
     Ucp = 0x20000000
 }
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub enum ExecOption {
     ExecAnchored = 0x00000010,
     ExecNotBol = 0x00000080,
@@ -77,7 +77,7 @@ pub enum ExecOption {
 pub static ExecPartial: ExecOption = ExecPartialSoft;
 pub static ExecNoStartOptimize: ExecOption = ExecNoStartOptimise;
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub enum ExtraOption {
     ExtraStudyData = 0x0001,
     ExtraMatchLimit = 0x0002,
@@ -88,7 +88,7 @@ pub enum ExtraOption {
     ExtraExecutableJit = 0x0040
 }
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub enum StudyOption {
     StudyJitCompile = 0x0001,
     StudyJitPartialSoftCompile = 0x0002,
@@ -107,7 +107,7 @@ pub struct CompilationError {
 }
 
 /// Wrapper for libpcre's `pcre` object (representing a compiled regular expression).
-#[deriving(Show)]
+#[derive(Debug)]
 pub struct Pcre {
 
     code: *const detail::pcre,
@@ -324,7 +324,7 @@ impl CompilationError {
     }
 }
 
-impl std::fmt::Show for CompilationError {
+impl std::fmt::Debug for CompilationError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self.opt_err {
             None => write!(f, "compilation failed at offset {:u}", self.erroffset as uint),
