@@ -6,11 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![crate_name = "pcre"]
-#![crate_type = "lib"]
-#![feature(phase)]
-#![feature(unsafe_destructor)]
-
 extern crate libc;
 extern crate collections;
 #[phase(plugin, link)] extern crate log;
