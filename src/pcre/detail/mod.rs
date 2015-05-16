@@ -1,4 +1,4 @@
-// Copyright 2014 The rust-pcre authors.
+// Copyright 2015 The rust-pcre authors.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -72,7 +72,7 @@ pub unsafe fn pcre_exec(code: *const pcre, extra: *const ::PcreExtra, subject: *
     if rc == PCRE_ERROR_NOMATCH {
         return -1;
     } else if rc < 0 && rc != PCRE_ERROR_NULL {
-        fail!("pcre_exec");
+        panic!("pcre_exec");
     }
 
     rc
@@ -90,7 +90,7 @@ pub unsafe fn pcre_fullinfo(code: *const pcre, extra: *const ::PcreExtra, what: 
     assert!(code.is_not_null());
     let rc = native::pcre_fullinfo(code, extra, what, where_);
     if rc < 0 && rc != PCRE_ERROR_NULL {
-        fail!("pcre_fullinfo");
+        panic!("pcre_fullinfo");
     }
 }
 
@@ -98,9 +98,9 @@ pub unsafe fn pcre_refcount(code: *mut ::detail::pcre, adjust: c_int) -> c_int {
     assert!(code.is_not_null());
     let curr_refcount = native::pcre_refcount(code, 0);
     if curr_refcount + adjust < 0 {
-        fail!("refcount underflow");
+        panic!("refcount underflow");
     } else if curr_refcount + adjust > 65535 {
-        fail!("refcount overflow");
+        panic!("refcount overflow");
     }
     native::pcre_refcount(code, adjust)
 }
@@ -121,7 +121,7 @@ pub unsafe fn pcre_study(code: *const ::detail::pcre, options: &EnumSet<::StudyO
             None          => error!("pcre_study() failed"),
             Some(err_str) => error!("pcre_study() failed: {}", err_str)
         }
-        fail!("pcre_study");
+        panic!("pcre_study");
     }
     assert!(err.is_null());
 

@@ -1,4 +1,4 @@
-// Copyright 2014 The rust-pcre authors.
+// Copyright 2015 The rust-pcre authors.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -192,7 +192,7 @@ impl CLike for CompileOption {
             19u => BsrUnicode,
             20u => JavaScriptCompat,
             21u => Ucp,
-            _ => fail!("unknown CompileOption number {:u}", n)
+            _ => panic!("unknown CompileOption number {}", n)
         }
     }
 
@@ -241,7 +241,7 @@ impl CLike for ExecOption {
             13u => ExecNoStartOptimise,
             14u => ExecPartialHard,
             15u => ExecNotEmptyAtStart,
-            _ => fail!("unknown ExecOption number {:u}", n)
+            _ => panic!("unknown ExecOption number {}", n)
         }
     }
 
@@ -276,7 +276,7 @@ impl CLike for ExtraOption {
             5u => ExtraMatchLimitRecursion,
             6u => ExtraMark,
             7u => ExtraExecutableJit,
-            _ => fail!("unknown ExtraOption number {:u}", n)
+            _ => panic!("unknown ExtraOption number {}", n)
         }
     }
 
@@ -300,7 +300,7 @@ impl CLike for StudyOption {
             2u => StudyJitPartialSoftCompile,
             3u => StudyJitPartialHardCompile,
             4u => StudyExtraNeeded,
-            _ => fail!("unknown StudyOption number {:u}", n)
+            _ => panic!("unknown StudyOption number {}", n)
         }
     }
 
