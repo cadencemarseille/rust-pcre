@@ -595,7 +595,7 @@ impl Pcre {
                 if !name_table.contains_key(&name) {
                     name_table.insert(name, vec![n]);
                 } else {
-                    name_table.find_mut(&name).unwrap().push(n);
+                    name_table.get_mut(&name).unwrap().push(n);
                 }
                 tabptr = tabptr.offset(name_entry_size as isize);
                 i += 1;
