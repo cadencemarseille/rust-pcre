@@ -758,7 +758,6 @@ impl<'a> Clone for MatchIterator<'a> {
     }
 }
 
-#[unsafe_destructor]
 impl<'a> Drop for MatchIterator<'a> {
     fn drop(&mut self) {
         unsafe {
