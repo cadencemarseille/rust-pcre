@@ -603,7 +603,7 @@ impl Pcre {
                 } else {
                     name_table.find_mut(&name).unwrap().push(n);
                 }
-                tabptr = tabptr.offset(name_entry_size as int);
+                tabptr = tabptr.offset(name_entry_size as isize);
                 i += 1;
             }
 
