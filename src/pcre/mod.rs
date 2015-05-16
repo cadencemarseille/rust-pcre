@@ -488,7 +488,7 @@ impl Pcre {
     #[inline]
     pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: usize, options: &EnumSet<ExecOption>) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
-        let mut ovector = Vec::from_elem(ovecsize as usize, 0 as c_int);
+        let mut ovector = vec![0 as c_int; ovecsize as usize];
 
         unsafe {
             subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
@@ -557,7 +557,8 @@ impl Pcre {
                 subject_cstring: subject.to_c_str_unchecked(), // the subject string can contain NUL bytes
                 offset: 0,
                 options: options.clone(),
-                ovector: Vec::from_elem(ovecsize as usize, 0 as c_int)
+                // https://github.com/rust-lang/rfcs/pull/832
+                ovector: vec![0 as c_int; ovecsize as usize]
             }
         }
     }
