@@ -15,8 +15,8 @@ extern crate libc;
 extern crate collections;
 #[phase(plugin, link)] extern crate log;
 
+use collections::{BTreeMap};
 use collections::enum_set::{CLike, EnumSet};
-use collections::treemap::{TreeMap};
 use collections::vec::{Vec};
 use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
 use std::c_str;
@@ -169,7 +169,7 @@ pub struct MatchIterator<'a> {
 }
 
 impl CLike for CompileOption {
-    fn from_uint(n: uint) -> CompileOption {
+    fn from_usize(n: usize) -> CompileOption {
         match n {
             1 => Caseless,
             2 => Multiline,
@@ -196,7 +196,7 @@ impl CLike for CompileOption {
         }
     }
 
-    fn to_uint(&self) -> uint {
+    fn to_usize(&self) -> usize {
         match *self {
             Caseless => 1,
             Multiline => 2,
@@ -224,7 +224,7 @@ impl CLike for CompileOption {
 }
 
 impl CLike for ExecOption {
-    fn from_uint(n: uint) -> ExecOption {
+    fn from_usize(n: usize) -> ExecOption {
         match n {
             1 => ExecAnchored,
             2 => ExecNotBol,
@@ -245,7 +245,7 @@ impl CLike for ExecOption {
         }
     }
 
-    fn to_uint(&self) -> uint {
+    fn to_usize(&self) -> usize {
         match *self {
             ExecAnchored => 1,
             ExecNotBol => 2,
@@ -267,7 +267,7 @@ impl CLike for ExecOption {
 }
 
 impl CLike for ExtraOption {
-    fn from_uint(n: uint) -> ExtraOption {
+    fn from_usize(n: usize) -> ExtraOption {
         match n {
             1 => ExtraStudyData,
             2 => ExtraMatchLimit,
@@ -280,7 +280,7 @@ impl CLike for ExtraOption {
         }
     }
 
-    fn to_uint(&self) -> uint {
+    fn to_usize(&self) -> usize {
         match *self {
             ExtraStudyData => 1,
             ExtraMatchLimit => 2,
@@ -294,7 +294,7 @@ impl CLike for ExtraOption {
 }
 
 impl CLike for StudyOption {
-    fn from_uint(n: uint) -> StudyOption {
+    fn from_usize(n: usize) -> StudyOption {
         match n {
             1 => StudyJitCompile,
             2 => StudyJitPartialSoftCompile,
@@ -304,7 +304,7 @@ impl CLike for StudyOption {
         }
     }
 
-    fn to_uint(&self) -> uint {
+    fn to_usize(&self) -> usize {
         match *self {
             StudyJitCompile => 1,
             StudyJitPartialSoftCompile => 2,
@@ -319,8 +319,8 @@ impl CompilationError {
         self.opt_err.clone()
     }
 
-    pub fn offset(&self) -> uint {
-        self.erroffset as uint
+    pub fn offset(&self) -> usize {
+        self.erroffset as usize
     }
 }
 
@@ -391,8 +391,8 @@ impl Pcre {
     ///
     /// # See also
     /// * [name_count()](#method.name_count) - Returns the number of named capture groups.
-    pub fn capture_count(&self) -> uint {
-        self.capture_count_ as uint
+    pub fn capture_count(&self) -> usize {
+        self.capture_count_ as usize
     }
 
     /// Enables the use of the mark field when matching the compiled regular expression. The
@@ -461,7 +461,7 @@ impl Pcre {
     /// If a regular expression will be used often, it might be worth studying it to possibly
     /// speed up matching. See the [study()](#method.study) method.
     #[inline]
-    pub fn exec_from<'a>(&self, subject: &'a str, startoffset: uint) -> Option<Match<'a>> {
+    pub fn exec_from<'a>(&self, subject: &'a str, startoffset: usize) -> Option<Match<'a>> {
         let no_options: EnumSet<ExecOption> = EnumSet::empty();
         self.exec_from_with_options(subject, startoffset, &no_options)
     }
@@ -486,9 +486,9 @@ impl Pcre {
     /// If a regular expression will be used often, it might be worth studying it to possibly
     /// speed up matching. See the [study()](#method.study) method.
     #[inline]
-    pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: uint, options: &EnumSet<ExecOption>) -> Option<Match<'a>> {
+    pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: usize, options: &EnumSet<ExecOption>) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
-        let mut ovector = Vec::from_elem(ovecsize as uint, 0 as c_int);
+        let mut ovector = Vec::from_elem(ovecsize as usize, 0 as c_int);
 
         unsafe {
             subject.with_c_str_unchecked(|subject_c_str| -> Option<Match<'a>> {
@@ -496,7 +496,7 @@ impl Pcre {
                 if rc >= 0 {
                     Some(Match {
                         subject: subject,
-                        partial_ovector: Vec::from_slice(ovector.slice_to(((self.capture_count_ + 1) * 2) as uint)),
+                        partial_ovector: Vec::from_slice(ovector.slice_to(((self.capture_count_ + 1) * 2) as usize)),
                         string_count_: rc
                     })
                 } else {
@@ -520,7 +520,7 @@ impl Pcre {
             } else {
                 let slice: Slice<c_uchar> = Slice {
                     data: self.mark_ as *const c_uchar,
-                    len: libc::strlen(self.mark_ as *const c_char) as uint
+                    len: libc::strlen(self.mark_ as *const c_char) as usize
                 };
                 Some(mem::transmute(slice))
             }
@@ -557,27 +557,27 @@ impl Pcre {
                 subject_cstring: subject.to_c_str_unchecked(), // the subject string can contain NUL bytes
                 offset: 0,
                 options: options.clone(),
-                ovector: Vec::from_elem(ovecsize as uint, 0 as c_int)
+                ovector: Vec::from_elem(ovecsize as usize, 0 as c_int)
             }
         }
     }
 
     /// Returns the number of named capture groups in the regular expression.
-    pub fn name_count(&self) -> uint {
+    pub fn name_count(&self) -> usize {
         unsafe {
             let mut name_count: c_int = 0;
             detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, detail::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
-            name_count as uint
+            name_count as usize
         }
     }
 
     /// Creates a name-to-number translation table that maps the name of each named capture
     /// group to the assigned group numbers.
     ///
-    /// The value type of the returned `TreeMap` is a `uint` vector because there can be
+    /// The value type of the returned `BTreeMap` is a `usize` vector because there can be
     /// more than one group number for a given name if the PCRE_DUPNAMES option is used
     /// when compiling the regular expression.
-    pub fn name_table(&self) -> TreeMap<String, Vec<uint>> {
+    pub fn name_table(&self) -> BTreeMap<String, Vec<usize>> {
         unsafe {
             let name_count = self.name_count();
             let mut tabptr: *const c_uchar = ptr::null();
@@ -585,11 +585,11 @@ impl Pcre {
             let mut name_entry_size: c_int = 0;
             detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
 
-            let mut name_table: TreeMap<String, Vec<uint>> = TreeMap::new();
+            let mut name_table: BTreeMap<String, Vec<usize>> = BTreeMap::new();
 
             let mut i = 0;
             while i < name_count {
-                let n: uint = (ptr::read(tabptr) as uint << 8) | (ptr::read(tabptr.offset(1)) as uint);
+                let n: usize = ((ptr::read(tabptr) as usize) << 8) | (ptr::read(tabptr.offset(1)) as usize);
                 let name_cstring = c_str::CString::new(tabptr.offset(2) as *const c_char, false);
                 let name: String = name_cstring.as_str().unwrap().to_owned();
                 // TODO Avoid the double lookup.
@@ -664,22 +664,22 @@ impl PcreExtra {
     /// Returns the match limit, if previously set by [set_match_limit()](#method.set_match_limit).
     ///
     /// The default value for this limit is set when PCRE is built. The default default is 10 million.
-    pub fn match_limit(&self) -> Option<uint> {
+    pub fn match_limit(&self) -> Option<usize> {
         if (self.flags & (ExtraMatchLimit as c_ulong)) == 0 {
             None
         } else {
-            Some(self.match_limit_ as uint)
+            Some(self.match_limit_ as usize)
         }
     }
 
     /// Returns the recursion depth limit, if previously set by [set_match_limit_recursion()](#method.set_match_limit_recursion).
     ///
     /// The default value for this limit is set when PCRE is built.
-    pub fn match_limit_recursion(&self) -> Option<uint> {
+    pub fn match_limit_recursion(&self) -> Option<usize> {
         if (self.flags & (ExtraMatchLimitRecursion as c_ulong)) == 0 {
             None
         } else {
-            Some(self.match_limit_recursion_ as uint)
+            Some(self.match_limit_recursion_ as usize)
         }
     }
 
@@ -710,33 +710,33 @@ impl PcreExtra {
 
 impl<'a> Match<'a> {
     /// Returns the start index within the subject string of capture group `n`.
-    pub fn group_start(&self, n: uint) -> uint {
-        self.partial_ovector[(n * 2) as uint] as uint
+    pub fn group_start(&self, n: usize) -> usize {
+        self.partial_ovector[(n * 2) as usize] as usize
     }
 
     /// Returns the end index within the subject string of capture group `n`.
-    pub fn group_end(&self, n: uint) -> uint {
-        self.partial_ovector[(n * 2 + 1) as uint] as uint
+    pub fn group_end(&self, n: usize) -> usize {
+        self.partial_ovector[(n * 2 + 1) as usize] as usize
     }
 
     /// Returns the length of the substring for capture group `n`.
-    pub fn group_len(&self, n: uint) -> uint {
-        let group_offsets = self.partial_ovector.slice_from((n * 2) as uint);
-        (group_offsets[1] - group_offsets[0]) as uint
+    pub fn group_len(&self, n: usize) -> usize {
+        let group_offsets = self.partial_ovector.slice_from((n * 2) as usize);
+        (group_offsets[1] - group_offsets[0]) as usize
     }
 
     /// Returns the substring for capture group `n` as a slice.
     #[inline]
-    pub fn group(&'a self, n: uint) -> &'a str {
-        let group_offsets = self.partial_ovector.slice_from((n * 2) as uint);
+    pub fn group(&'a self, n: usize) -> &'a str {
+        let group_offsets = self.partial_ovector.slice_from((n * 2) as usize);
         let start = group_offsets[0];
         let end = group_offsets[1];
-        self.subject.as_slice().slice(start as uint, end as uint)
+        self.subject.as_slice().slice(start as usize, end as usize)
     }
 
     /// Returns the number of substrings captured.
-    pub fn string_count(&self) -> uint {
-        self.string_count_ as uint
+    pub fn string_count(&self) -> usize {
+        self.string_count_ as usize
     }
 }
 
@@ -787,7 +787,7 @@ impl<'a> Iterator<Match<'a>> for MatchIterator<'a> {
 
                     Some(Match {
                         subject: self.subject,
-                        partial_ovector: Vec::from_slice(self.ovector.slice_to(((self.capture_count + 1) * 2) as uint)),
+                        partial_ovector: Vec::from_slice(self.ovector.slice_to(((self.capture_count + 1) * 2) as usize)),
                         string_count_: rc
                     })
                 } else {
