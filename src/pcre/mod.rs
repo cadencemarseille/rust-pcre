@@ -339,7 +339,7 @@ impl Pcre {
     /// # Argument
     /// * `pattern` - The regular expression.
     pub fn compile(pattern: &str) -> Result<Pcre, CompilationError> {
-        let no_options: EnumSet<CompileOption> = EnumSet::empty();
+        let no_options: EnumSet<CompileOption> = EnumSet::new();
         Pcre::compile_with_options(pattern, &no_options)
     }
 
@@ -462,7 +462,7 @@ impl Pcre {
     /// speed up matching. See the [study()](#method.study) method.
     #[inline]
     pub fn exec_from<'a>(&self, subject: &'a str, startoffset: usize) -> Option<Match<'a>> {
-        let no_options: EnumSet<ExecOption> = EnumSet::empty();
+        let no_options: EnumSet<ExecOption> = EnumSet::new();
         self.exec_from_with_options(subject, startoffset, &no_options)
     }
 
@@ -534,7 +534,7 @@ impl Pcre {
     /// * `subject` - The subject string.
     #[inline]
     pub fn matches<'a>(&self, subject: &'a str) -> MatchIterator<'a> {
-        let no_options: EnumSet<ExecOption> = EnumSet::empty();
+        let no_options: EnumSet<ExecOption> = EnumSet::new();
         self.matches_with_options(subject, &no_options)
     }
 
@@ -613,7 +613,7 @@ impl Pcre {
     /// # Return value
     /// `true` if additional information could be extracted. `false` otherwise.
     pub fn study(&mut self) -> bool {
-        let no_options: EnumSet<StudyOption> = EnumSet::empty();
+        let no_options: EnumSet<StudyOption> = EnumSet::new();
         self.study_with_options(&no_options)
     }
 
