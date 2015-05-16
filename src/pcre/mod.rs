@@ -11,18 +11,17 @@ extern crate libc;
 #[macro_use]
 extern crate log;
 
-use collections::{BTreeMap};
-use collections::vec::{Vec};
 use enum_set::{CLike, EnumSet};
 use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
 use std::ffi;
 use std::ffi::{CString};
-use std::mem;
+use std::collections::{BTreeMap};
+use std::ffi::{CStr, CString};
 use std::option::{Option};
 use std::ptr;
-use std::raw::{Slice};
 use std::result::{Result};
 use std::string::{String};
+use std::vec::{Vec};
 
 mod detail;
 
@@ -517,16 +516,13 @@ impl Pcre {
     /// `None` if either there was no mark set or [enable_mark()](#method.enable_mark) was not called,
     /// or was unsuccessful.
     #[inline]
-    pub fn mark(&self) -> Option<&str> {
+    pub fn mark(&self) -> Option<String> {
         unsafe {
             if self.mark_.is_null() {
                 None
             } else {
-                let slice: Slice<c_uchar> = Slice {
-                    data: self.mark_ as *const c_uchar,
-                    len: libc::strlen(self.mark_ as *const c_char) as usize
-                };
-                Some(mem::transmute(slice))
+                let mark_cstr = CStr::from_ptr(self.mark_ as *const c_char);
+                Some(String::from_utf8(Vec::from(mark_cstr.to_bytes())).unwrap())
             }
         }
     }
