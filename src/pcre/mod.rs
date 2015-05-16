@@ -775,7 +775,9 @@ impl<'a> Drop for MatchIterator<'a> {
     }
 }
 
-impl<'a> Iterator<Match<'a>> for MatchIterator<'a> {
+impl<'a> Iterator for MatchIterator<'a> {
+    type Item = Match<'a>;
+
     /// Gets the next match.
     #[inline]
     fn next(&mut self) -> Option<Match<'a>> {
