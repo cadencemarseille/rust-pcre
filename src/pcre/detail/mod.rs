@@ -8,7 +8,7 @@
 
 use collections::enum_set::{EnumSet};
 use libc::{c_char, c_int, c_uchar, c_void};
-use std::ffi::{CString};
+use std::ffi::{CStr};
 use std::ptr;
 use std::result::{Result};
 use std::string::{String};
@@ -49,11 +49,12 @@ pub unsafe fn pcre_compile(pattern: *const c_char, options: &EnumSet<::CompileOp
         // error message. This is a static string that is part of the library. You
         // must not try to free it."
         // http://pcre.org/pcre.txt
-        let err_cstring = CString::new(err, false);
-
-        match err_cstring.as_str() {
-            None => Err((None, erroffset)),
-            Some(err_str) => Err((Some(err_str.to_owned()), erroffset))
+        let err_cstr = CStr::from_ptr(err);
+        // http://illegalargumentexception.blogspot.com/2015/05/rust-utf-8-byte-array-to-string.html
+        // TODO Investigate memory allocations and check for alternative solutions.
+        match String::from_utf8(Vec::from(err_cstr.to_bytes())) {
+            Err(_) => Err((None, erroffset)),
+            Ok(err_str) => Err((Some(err_str), erroffset))
         }
     } else {
         assert!(!code.is_null());
@@ -115,10 +116,10 @@ pub unsafe fn pcre_study(code: *const ::detail::pcre, options: &EnumSet<::StudyO
     // a static string that is part of the library. You must not try to free it."
     // http://pcre.org/pcre.txt
     if !err.is_null() {
-        let err_cstring = CString::new(err, false);
-        match err_cstring.as_str() {
-            None          => error!("pcre_study() failed"),
-            Some(err_str) => error!("pcre_study() failed: {}", err_str)
+        let err_cstr = CStr::from_ptr(err);
+        match String::from_utf8(Vec::from(err_cstr.to_bytes())) {
+            Err(_) => error!("pcre_study() failed"),
+            Ok(err_str) => error!("pcre_study() failed: {}", err_str)
         }
         panic!("pcre_study");
     }
@@ -128,6 +129,6 @@ pub unsafe fn pcre_study(code: *const ::detail::pcre, options: &EnumSet<::StudyO
 }
 
 pub fn pcre_version() -> String {
-    let version_cstring = unsafe { CString::new(native::pcre_version(), false) };
-    version_cstring.as_str().unwrap().to_owned()
+    let version_cstr = unsafe { CStr::from_ptr(native::pcre_version()) };
+    String::from_utf8(Vec::from(version_cstr.to_bytes())).unwrap()
 }
