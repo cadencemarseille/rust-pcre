@@ -8,11 +8,12 @@
 
 extern crate enum_set;
 extern crate libc;
+extern crate libpcre_sys;
 #[macro_use]
 extern crate log;
 
 use enum_set::{CLike, EnumSet};
-use libc::{c_char, c_int, c_uchar, c_ulong, c_void};
+use libc::{c_char, c_int, c_uchar, c_void};
 use std::collections::{BTreeMap};
 use std::ffi::{CStr, CString};
 use std::option::{Option};
@@ -67,19 +68,10 @@ pub enum ExecOption {
     ExecNotEmptyAtStart = 0x10000000
 }
 
-pub static ExecPartial: ExecOption = ExecOption::ExecPartialSoft;
-pub static ExecNoStartOptimize: ExecOption = ExecOption::ExecNoStartOptimise;
-
-#[derive(Clone)]
-pub enum ExtraOption {
-    ExtraStudyData = 0x0001,
-    ExtraMatchLimit = 0x0002,
-    ExtraCalloutData = 0x0004,
-    ExtraTables = 0x0008,
-    ExtraMatchLimitRecursion = 0x0010,
-    ExtraMark = 0x0020,
-    ExtraExecutableJit = 0x0040
-}
+#[allow(non_upper_case_globals)]
+pub const ExecPartial: ExecOption = ExecOption::ExecPartialSoft;
+#[allow(non_upper_case_globals)]
+pub const ExecNoStartOptimize: ExecOption = ExecOption::ExecNoStartOptimise;
 
 #[derive(Clone)]
 pub enum StudyOption {
@@ -91,6 +83,7 @@ pub enum StudyOption {
     StudyExtraNeeded = 0x0008
 }
 
+#[derive(Debug)]
 pub struct CompilationError {
 
     opt_err: Option<String>,
@@ -100,6 +93,7 @@ pub struct CompilationError {
 }
 
 /// Wrapper for libpcre's `pcre` object (representing a compiled regular expression).
+#[allow(raw_pointer_derive)]
 #[derive(Debug)]
 pub struct Pcre {
 
@@ -114,18 +108,7 @@ pub struct Pcre {
 
 }
 
-pub struct PcreExtra {
-
-    flags: c_ulong,
-    study_data: *mut c_void,
-    match_limit_: c_ulong,
-    callout_data: *mut c_void,
-    tables: *const c_uchar,
-    match_limit_recursion_: c_ulong,
-    mark: *mut *mut c_uchar,
-    executable_jit: *mut c_void
-
-}
+pub type PcreExtra = libpcre_sys::pcre_extra;
 
 /// Represents a match of a subject string against a regular expression.
 pub struct Match<'a> {
@@ -263,35 +246,6 @@ impl CLike for ExecOption {
     }
 }
 
-impl CLike for ExtraOption {
-    unsafe fn from_u32(n: u32) -> ExtraOption {
-        use ExtraOption::*;
-        match n {
-            1 => ExtraStudyData,
-            2 => ExtraMatchLimit,
-            3 => ExtraCalloutData,
-            4 => ExtraTables,
-            5 => ExtraMatchLimitRecursion,
-            6 => ExtraMark,
-            7 => ExtraExecutableJit,
-            _ => panic!("unknown ExtraOption number {}", n)
-        }
-    }
-
-    fn to_u32(&self) -> u32 {
-        use ExtraOption::*;
-        match *self {
-            ExtraStudyData => 1,
-            ExtraMatchLimit => 2,
-            ExtraCalloutData => 3,
-            ExtraTables => 4,
-            ExtraMatchLimitRecursion => 5,
-            ExtraMark => 6,
-            ExtraExecutableJit => 7
-        }
-    }
-}
-
 impl CLike for StudyOption {
     unsafe fn from_u32(n: u32) -> StudyOption {
         use StudyOption::*;
@@ -325,7 +279,7 @@ impl CompilationError {
     }
 }
 
-impl std::fmt::Debug for CompilationError {
+impl std::fmt::Display for CompilationError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self.opt_err {
             None => write!(f, "compilation failed at offset {}", self.erroffset as usize),
@@ -369,7 +323,7 @@ impl Pcre {
                     let extra: *mut PcreExtra = ptr::null_mut();
 
                     let mut capture_count: c_int = 0;
-                    detail::pcre_fullinfo(code, extra as *const PcreExtra, detail::PCRE_INFO_CAPTURECOUNT, 
+                    detail::pcre_fullinfo(code, extra as *const PcreExtra, libpcre_sys::PCRE_INFO_CAPTURECOUNT, 
                         &mut capture_count as *mut c_int as *mut c_void);
 
                     Ok(Pcre {
@@ -563,7 +517,7 @@ impl Pcre {
     pub fn name_count(&self) -> usize {
         unsafe {
             let mut name_count: c_int = 0;
-            detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, detail::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
+            detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, libpcre_sys::PCRE_INFO_NAMECOUNT, &mut name_count as *mut c_int as *mut c_void);
             name_count as usize
         }
     }
@@ -578,9 +532,9 @@ impl Pcre {
         unsafe {
             let name_count = self.name_count();
             let mut tabptr: *const c_uchar = ptr::null();
-            detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, detail::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *const c_uchar as *mut c_void);
+            detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, libpcre_sys::PCRE_INFO_NAMETABLE, &mut tabptr as *mut *const c_uchar as *mut c_void);
             let mut name_entry_size: c_int = 0;
-            detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, detail::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
+            detail::pcre_fullinfo(self.code, self.extra as *const PcreExtra, libpcre_sys::PCRE_INFO_NAMEENTRYSIZE, &mut name_entry_size as *mut c_int as *mut c_void);
 
             let mut name_table: BTreeMap<String, Vec<usize>> = BTreeMap::new();
 
@@ -658,54 +612,6 @@ impl Drop for Pcre {
     }
 }
 
-impl PcreExtra {
-    /// Returns the match limit, if previously set by [set_match_limit()](#method.set_match_limit).
-    ///
-    /// The default value for this limit is set when PCRE is built. The default default is 10 million.
-    pub fn match_limit(&self) -> Option<usize> {
-        if (self.flags & (ExtraOption::ExtraMatchLimit as c_ulong)) == 0 {
-            None
-        } else {
-            Some(self.match_limit_ as usize)
-        }
-    }
-
-    /// Returns the recursion depth limit, if previously set by [set_match_limit_recursion()](#method.set_match_limit_recursion).
-    ///
-    /// The default value for this limit is set when PCRE is built.
-    pub fn match_limit_recursion(&self) -> Option<usize> {
-        if (self.flags & (ExtraOption::ExtraMatchLimitRecursion as c_ulong)) == 0 {
-            None
-        } else {
-            Some(self.match_limit_recursion_ as usize)
-        }
-    }
-
-    /// Sets the mark field.
-    pub unsafe fn set_mark(&mut self, mark: &mut *mut c_uchar) {
-        self.flags |= ExtraOption::ExtraMark as c_ulong;
-        self.mark = mark as *mut *mut c_uchar;
-    }
-
-    /// Sets the match limit to `limit` instead of using PCRE's default.
-    pub fn set_match_limit(&mut self, limit: u32) {
-        self.flags |= ExtraOption::ExtraMatchLimit as c_ulong;
-        self.match_limit_ = limit as c_ulong;
-    }
-
-    /// Sets the recursion depth limit to `limit` instead of using PCRE's default.
-    pub fn set_match_limit_recursion(&mut self, limit: u32) {
-        self.flags |= ExtraOption::ExtraMatchLimitRecursion as c_ulong;
-        self.match_limit_ = limit as c_ulong;
-    }
-
-    /// Unsets the mark field. PCRE will not save mark names when matching the compiled regular expression.
-    pub fn unset_mark(&mut self) {
-        self.flags &= !(ExtraOption::ExtraMark as c_ulong);
-        self.mark = ptr::null_mut();
-    }
-}
-
 impl<'a> Match<'a> {
     /// Returns the start index within the subject string of capture group `n`.
     pub fn group_start(&self, n: usize) -> usize {
@@ -726,7 +632,7 @@ impl<'a> Match<'a> {
     /// Returns the substring for capture group `n` as a slice.
     #[inline]
     pub fn group(&'a self, n: usize) -> &'a str {
-        let group_offsets = &self.partial_ovector[..((n * 2) as usize)];
+        let group_offsets = &self.partial_ovector[((n * 2) as usize)..];
         let start = group_offsets[0];
         let end = group_offsets[1];
         &self.subject[(start as usize)..(end as usize)]

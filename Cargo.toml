@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["The rust-pcre authors"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
-#links = "pcre"
 keywords = ["regexp", "regular-expressions", "pcre"]
 repository = "https://github.com/cadencemarseille/rust-pcre"
 documentation = "http://www.rust-ci.org/cadencemarseille/rust-pcre/doc/pcre/"
@@ -14,13 +13,18 @@ Rust wrapper for libpcre.
 """
 
 [lib]
-name = "rustpcre"
-path = "src/pcre/mod.rs"
+name = "pcre"
 
 [dependencies]
-libc = "0.1"
-log = "0.3"
+libc = "*"
+log = "*"
 
 [dependencies.enum-set]
 git = "https://github.com/contain-rs/enum-set.git"
 rev = "4c9745cb23534f09c1ff22755db745bfe8a9b07c"
+
+[dependencies.libpcre-sys]
+path = "libpcre-sys"
+
+[dev-dependencies]
+getopts = "*"

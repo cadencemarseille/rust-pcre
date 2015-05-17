@@ -1,11 +1,11 @@
-extern crate collections;
+extern crate enum_set;
 extern crate pcre;
 
-use collections::EnumSet;
+use enum_set::{EnumSet};
 use pcre::{CompileOption, Pcre, StudyOption};
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_compile_nul() {
     // Nul bytes are not allowed in the pattern string.
     drop(Pcre::compile("\0abc"));
@@ -14,25 +14,25 @@ fn test_compile_nul() {
 #[test]
 fn test_compile_bad_pattern() {
     let err = Pcre::compile("[").unwrap_err();
-    assert_eq!(err.offset(), 1u);
+    assert_eq!(err.offset(), 1);
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_compile_bad_pattern2() {
-    drop(Pcre::compile("[").unwrap()); // Should be Err, will fail.
+    Pcre::compile("[").unwrap(); // Should be Err, will fail.
 }
 
 #[test]
 fn test_compile_capture_count() {
     let re = Pcre::compile("(?:abc)(def)").unwrap();
-    assert_eq!(re.capture_count(), 1u);
+    assert_eq!(re.capture_count(), 1);
 }
 
 #[test]
 fn test_exec_basic() {
     let re = Pcre::compile("^...$").unwrap();
-    assert_eq!(re.capture_count(), 0u);
+    assert_eq!(re.capture_count(), 0);
     let m = re.exec("abc").unwrap();
     assert_eq!(m.group(0), "abc");
 }
@@ -55,12 +55,12 @@ fn test_exec_nul_byte() {
 fn test_exec_from_basic() {
     let re = Pcre::compile("abc").unwrap();
     let subject = "abcabc";
-    let m1 = re.exec_from(subject, 1u).unwrap();
-    assert_eq!(m1.group_start(0u), 3u);
-    assert_eq!(m1.group_end(0u), 6u);
-    assert_eq!(m1.group_len(0u), 3u);
+    let m1 = re.exec_from(subject, 1).unwrap();
+    assert_eq!(m1.group_start(0), 3);
+    assert_eq!(m1.group_end(0), 6);
+    assert_eq!(m1.group_len(0), 3);
     let m2 = re.exec(subject).unwrap();
-    assert_eq!(m2.group_start(0u), 0u);
+    assert_eq!(m2.group_start(0), 0);
 }
 
 #[test]
@@ -89,29 +89,29 @@ fn test_matches_basic() {
     let mut opt_m = it.next();
     assert!(opt_m.is_some());
     let mut m = opt_m.unwrap();
-    assert_eq!(m.group_start(0u), 1u);
-    assert_eq!(m.group_end(0u), 4u);
+    assert_eq!(m.group_start(0), 1);
+    assert_eq!(m.group_end(0), 4);
 
     let opt_m2 = it.next();
     assert!(opt_m2.is_some());
     let m2 = opt_m2.unwrap();
-    assert_eq!(m2.group_start(0u), 8u);
-    assert_eq!(m2.group_end(0u), 11u);
+    assert_eq!(m2.group_start(0), 8);
+    assert_eq!(m2.group_end(0), 11);
     // Verify that getting the next match has not changed the first match data.
-    assert_eq!(m.group_start(0u), 1u);
-    assert_eq!(m.group_end(0u), 4u);
+    assert_eq!(m.group_start(0), 1);
+    assert_eq!(m.group_end(0), 4);
 
     opt_m = it.next();
     assert!(opt_m.is_some());
     m = opt_m.unwrap();
-    assert_eq!(m.group_start(0u), 11u);
-    assert_eq!(m.group_end(0u), 14u);
+    assert_eq!(m.group_start(0), 11);
+    assert_eq!(m.group_end(0), 14);
 
     opt_m = it.next();
     assert!(opt_m.is_some());
     m = opt_m.unwrap();
-    assert_eq!(m.group_start(0u), 19u);
-    assert_eq!(m.group_end(0u), 22u);
+    assert_eq!(m.group_start(0), 19);
+    assert_eq!(m.group_end(0), 22);
 
     opt_m = it.next();
     assert!(opt_m.is_none());
@@ -123,17 +123,17 @@ fn test_extra_mark() {
     let subject1 = "XY";
     let subject2 = "XZ";
 
-    let mut compile_options: EnumSet<CompileOption> = EnumSet::empty();
-    compile_options.add(pcre::Extra);
+    let mut compile_options: EnumSet<CompileOption> = EnumSet::new();
+    compile_options.insert(CompileOption::Extra);
 
     let mut re = Pcre::compile_with_options(pattern, &compile_options).unwrap();
 
     // first try to get the mark from the compile to make sure it fails
     assert_eq!(re.mark(), None);
 
-    let mut study_options: EnumSet<StudyOption> = EnumSet::empty();
-    //study_options.add(pcre::StudyExtraNeeded);
-    study_options.add(pcre::StudyJitCompile);
+    let mut study_options: EnumSet<StudyOption> = EnumSet::new();
+    //study_options.add(StudyOption::StudyExtraNeeded);
+    study_options.insert(StudyOption::StudyJitCompile);
     let study = re.study_with_options(&study_options);
     // Double check to make sure the study worked
     assert!(study);

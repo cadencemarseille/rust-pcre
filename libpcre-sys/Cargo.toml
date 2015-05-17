@@ -1,0 +1,22 @@
+[package]
+name = "libpcre-sys"
+version = "0.1.0"
+authors = ["The rust-pcre authors"]
+license = "MIT/Apache-2.0"
+links = "pcre"
+build = "build.rs"
+description = "Native bindings to libpcre"
+
+[lib]
+name = "libpcre_sys"
+
+[dependencies]
+libc = "*"
+
+[build-dependencies]
+bzip2 = "*"
+libc = "*"
+pkg-config = "*"
+
+[build-dependencies.tar]
+git = "https://github.com/alexcrichton/tar-rs"

@@ -2,19 +2,10 @@ language: rust
 env:
   global:
     - secure: T4uyJ+OrJlSFUZsDhMrX4+Byi/+SPkT8r7yX4nwaKywJtvfbrN43KH3dcDQRqh41xgs9lMVUBTyfeKuNv6AHF0XODIk3rKwfr9FU8XC5Wb1lz9lA1YbTDIkZIJrfetN8b/AY2W3Y35x6stlqQZciuqekSBv0MW5QLxNhb/fokDc=
-    - PCRE_LIBDIR="/opt/gimp-standalone/lib/x86_64-linux-gnu"
-    - LD_LIBRARY_PATH="/opt/gimp-standalone/lib/x86_64-linux-gnu:/usr/local/lib"
-before_install:
-  - yes | sudo add-apt-repository ppa:otto-kesselgulasch/gimp-standalone
-  - sudo apt-get update
 install:
-  - sudo apt-get --download-only install libpcre3gsa
-  - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa_*.deb
-  - sudo apt-get --download-only install libpcrecpp0gsa
-  - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcrecpp0gsa_*.deb
-  - sudo apt-get --download-only install libpcre3gsa-dev
-  - sudo dpkg -i --force-overwrite /var/cache/apt/archives/libpcre3gsa-dev_*.deb
+  - sudo apt-get install cmake
 script:
+  - cargo test
   - cargo doc
 after_script:
   - # the doc directory needs to be in the root for rust-ci
