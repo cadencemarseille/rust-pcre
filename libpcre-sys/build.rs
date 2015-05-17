@@ -95,6 +95,7 @@ fn main() {
 
             let mut cmd = Command::new("cmake");
             cmd.arg(".");
+            cmd.arg("-DCMAKE_C_FLAGS=-fPIC");
             cmd.arg("-DBUILD_SHARED_LIBS=OFF");
             cmd.arg("-DPCRE_BUILD_PCRECPP=OFF");
             cmd.arg("-DPCRE_BUILD_PCREGREP=OFF");
