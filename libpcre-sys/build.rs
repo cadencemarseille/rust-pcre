@@ -86,7 +86,7 @@ fn main() {
                     let out_pathbuf_cstring = CString::new(out_pathbuf.as_os_str().to_os_string().into_vec()).unwrap();
                     let mode = file.mode().unwrap();
                     unsafe {
-                        libc::funcs::posix88::stat_::chmod(out_pathbuf_cstring.as_ptr(), mode as u16);
+                        libc::chmod(out_pathbuf_cstring.as_ptr(), mode as libc::mode_t);
                     }
                 }
             }
