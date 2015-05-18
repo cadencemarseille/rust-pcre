@@ -94,6 +94,21 @@ fn main() {
             let pcre_pathbuf = Path::new(&out_dir).join(format!("pcre-{}", BUNDLED_PCRE_VERSION));
 
             if cfg!(unix) {
+                let mut cmd = Command::new("autoreconf");
+                cmd.current_dir(&pcre_pathbuf);
+                let status = match cmd.status() {
+                    Err(ref e) if e.kind() == ErrorKind::NotFound => {
+                        panic!("failed to execute `autoreconf`: {}. Are the Autotools installed?", e);
+                    },
+                    Err(e) => {
+                        panic!("failed to execute `autoreconf`: {}", e);
+                    },
+                    Ok(status) => status
+                };
+                if !status.success() {
+                    panic!("`autoreconf` did not run successfully.");
+                }
+
                 let mut cmd = Command::new("./configure");
                 cmd.arg("--disable-shared");
                 cmd.arg("--disable-cpp");

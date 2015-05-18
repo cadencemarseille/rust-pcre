@@ -5,10 +5,6 @@ rust:
 env:
   global:
     - secure: T4uyJ+OrJlSFUZsDhMrX4+Byi/+SPkT8r7yX4nwaKywJtvfbrN43KH3dcDQRqh41xgs9lMVUBTyfeKuNv6AHF0XODIk3rKwfr9FU8XC5Wb1lz9lA1YbTDIkZIJrfetN8b/AY2W3Y35x6stlqQZciuqekSBv0MW5QLxNhb/fokDc=
-addons:
-  apt:
-    packages:
-      - automake
 script:
   - cargo test
   - cargo doc
