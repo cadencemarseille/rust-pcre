@@ -1,5 +1,5 @@
 [package]
-name = "rust-pcre"
+name = "pcre"
 version = "0.1.0"
 authors = ["The rust-pcre authors"]
 license = "MIT/Apache-2.0"
