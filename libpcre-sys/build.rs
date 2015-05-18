@@ -110,6 +110,7 @@ fn main() {
                 }
 
                 let mut cmd = Command::new("./configure");
+                cmd.arg("--with-pic");
                 cmd.arg("--disable-shared");
                 cmd.arg("--disable-cpp");
                 cmd.arg("--enable-jit");
@@ -124,7 +125,7 @@ fn main() {
                     Ok(status) => status
                 };
                 if !status.success() {
-                    panic!("`./configure --disable-shared ...` did not run successfully.");
+                    panic!("`./configure --with-pic ...` did not run successfully.");
                 }
 
                 let mut cmd = Command::new("make");
