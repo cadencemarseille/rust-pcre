@@ -1,4 +1,5 @@
 .DS_Store
 Cargo.lock
+/libpcre-sys/target
 /doc
 /target
