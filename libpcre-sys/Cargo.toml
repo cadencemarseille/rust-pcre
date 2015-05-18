@@ -19,6 +19,4 @@ libc = "*"
 bzip2 = "*"
 libc = "*"
 pkg-config = "*"
-
-[build-dependencies.tar]
-git = "https://github.com/alexcrichton/tar-rs"
+tar = ">= 0.2.12"
