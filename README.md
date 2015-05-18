@@ -5,11 +5,11 @@
 
 ## Quick Start
 
-To use rust-pcre, you can either install libpcre 8.20+ and register with pkg-config or you can let rust-pcre build libpcre from source using CMake.
+To use rust-pcre, you can either install libpcre 8.20+ and register with pkg-config or you can let rust-pcre build libpcre from source.
 
 ### Debian
 
-Debian Squeeze's package for libpcre is for version 8.02 of the library, which is too old. You can either install a newer version of libpcre and register it with pkg-config or just let rust-pcre automatically build libpcre from source using CMake.
+Debian Squeeze's package for libpcre is for version 8.02 of the library, which is too old. You can either install a newer version of libpcre and register it with pkg-config or just let rust-pcre automatically build libpcre from source.
 
 On Debian Wheezy and newer, install the `libpcre3-dev` package:
 
@@ -22,18 +22,18 @@ Install the `pcre-devel` package.
 
 ### Mac OS X
 
-Mac OS 10.7 ships with version 8.02 of libpcre. You can either install a newer version of libpcre and register it with pkg-config or just let rust-pcre automatically build libpcre from source using CMake.
+Mac OS 10.7 ships with version 8.02 of libpcre. You can either install a newer version of libpcre and register it with pkg-config or just let rust-pcre automatically build libpcre from source.
 
-[Homebrew](http://brew.sh/) is highly recommended for installing libpcre and CMake. With Homebrew, installing the latest versions of Rust, libpcre, and CMake is as simple as:
+[Homebrew](http://brew.sh/) is highly recommended for installing libpcre. With Homebrew, installing the latest versions of Rust and libpcre is as simple as:
 
-    brew install rust pcre cmake
+    brew install rust pcre
 
 To upgrade:
 
-    brew update && brew upgrade rust pcre cmake
+    brew update && brew upgrade rust pcre
 
 ### Ubuntu
-The libpcre packages for Ubuntu 10.04 LTS 'Lucid Lynx' and Ubuntu 12.04 LTS 'Precise Pangolin' are too old. You can either install a newer version of libpcre and register it with pkg-config or just let rust-pcre automatically build libpcre from source using CMake.
+The libpcre packages for Ubuntu 10.04 LTS 'Lucid Lynx' and Ubuntu 12.04 LTS 'Precise Pangolin' are too old. You can either install a newer version of libpcre and register it with pkg-config or just let rust-pcre automatically build libpcre from source.
 
 On Ubuntu 12.10 'Quantal Quetzal' and newer, install the `libpcre3-dev` package:
 

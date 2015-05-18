@@ -93,47 +93,84 @@ fn main() {
 
             let pcre_pathbuf = Path::new(&out_dir).join(format!("pcre-{}", BUNDLED_PCRE_VERSION));
 
-            let mut cmd = Command::new("cmake");
-            cmd.arg(".");
-            cmd.arg("-DCMAKE_C_FLAGS=-fPIC");
-            cmd.arg("-DBUILD_SHARED_LIBS=OFF");
-            cmd.arg("-DPCRE_BUILD_PCRECPP=OFF");
-            cmd.arg("-DPCRE_BUILD_PCREGREP=OFF");
-            cmd.arg("-DPCRE_BUILD_TESTS=OFF");
-            cmd.arg("-DPCRE_BUILD_PCRE8=ON");
-            cmd.arg("-DPCRE_SUPPORT_JIT=ON");
-            cmd.arg("-DPCRE_SUPPORT_UTF=ON");
-            cmd.arg("-DPCRE_SUPPORT_UNICODE_PROPERTIES=ON");
-            cmd.current_dir(&pcre_pathbuf);
-            let status = match cmd.status() {
-                Err(ref e) if e.kind() == ErrorKind::NotFound => {
-                    panic!("failed to execute `cmake`: {}. Is CMake installed?", e);
-                },
-                Err(e) => {
-                    panic!("failed to execute `cmake`: {}", e);
-                },
-                Ok(status) => status
-            };
-            if !status.success() {
-                panic!("`cmake . -DBUILD_SHARED_LIBS=OFF ...` did not run successfully.");
-            }
+            if cfg!(unix) {
+                let mut cmd = Command::new("./configure");
+                cmd.arg("--disable-shared");
+                cmd.arg("--disable-cpp");
+                cmd.arg("--enable-jit");
+                cmd.arg("--enable-utf");
+                cmd.arg("--enable-unicode-properties");
+                cmd.arg(format!("--prefix={}", Path::new(&out_dir).display()));
+                cmd.current_dir(&pcre_pathbuf);
+                let status = match cmd.status() {
+                    Err(e) => {
+                        panic!("failed to execute `./configure`: {}", e);
+                    },
+                    Ok(status) => status
+                };
+                if !status.success() {
+                    panic!("`./configure --disable-shared ...` did not run successfully.");
+                }
 
-            let mut cmd = Command::new("cmake");
-            cmd.arg("--build").arg(".").current_dir(&pcre_pathbuf);
-            let status = match cmd.status() {
-                Err(ref e) if e.kind() == ErrorKind::NotFound => {
-                    panic!("failed to execute `cmake`: {}. Is CMake installed?", e);
-                },
-                Err(e) => {
-                    panic!("failed to execute `cmake`: {}", e);
-                },
-                Ok(status) => status
-            };
-            if !status.success() {
-                panic!("`cmake --build .` did not run successfully.");
-            }
+                let mut cmd = Command::new("make");
+                cmd.arg("install");
+                cmd.current_dir(&pcre_pathbuf);
+                let status = match cmd.status() {
+                    Err(ref e) if e.kind() == ErrorKind::NotFound => {
+                        panic!("failed to execute `make`: {}. Is GNU Make installed?", e);
+                    },
+                    Err(e) => {
+                        panic!("failed to execute `make`: {}", e);
+                    },
+                    Ok(status) => status
+                };
+                if !status.success() {
+                    panic!("`make install` did not run successfully.");
+                }
 
-            println!("cargo:rustc-link-search=native={}", pcre_pathbuf.as_path().display());
+                println!("cargo:rustc-link-search=native={}", Path::new(&out_dir).join("lib").as_path().display());
+            } else {
+                let mut cmd = Command::new("cmake");
+                cmd.arg(".");
+                cmd.arg("-DBUILD_SHARED_LIBS=OFF");
+                cmd.arg("-DPCRE_BUILD_PCRECPP=OFF");
+                cmd.arg("-DPCRE_BUILD_PCREGREP=OFF");
+                cmd.arg("-DPCRE_BUILD_TESTS=OFF");
+                cmd.arg("-DPCRE_BUILD_PCRE8=ON");
+                cmd.arg("-DPCRE_SUPPORT_JIT=ON");
+                cmd.arg("-DPCRE_SUPPORT_UTF=ON");
+                cmd.arg("-DPCRE_SUPPORT_UNICODE_PROPERTIES=ON");
+                cmd.current_dir(&pcre_pathbuf);
+                let status = match cmd.status() {
+                    Err(ref e) if e.kind() == ErrorKind::NotFound => {
+                        panic!("failed to execute `cmake`: {}. Is CMake installed?", e);
+                    },
+                    Err(e) => {
+                        panic!("failed to execute `cmake`: {}", e);
+                    },
+                    Ok(status) => status
+                };
+                if !status.success() {
+                    panic!("`cmake . -DBUILD_SHARED_LIBS=OFF ...` did not run successfully.");
+                }
+
+                let mut cmd = Command::new("cmake");
+                cmd.arg("--build").arg(".").current_dir(&pcre_pathbuf);
+                let status = match cmd.status() {
+                    Err(ref e) if e.kind() == ErrorKind::NotFound => {
+                        panic!("failed to execute `cmake`: {}. Is CMake installed?", e);
+                    },
+                    Err(e) => {
+                        panic!("failed to execute `cmake`: {}", e);
+                    },
+                    Ok(status) => status
+                };
+                if !status.success() {
+                    panic!("`cmake --build .` did not run successfully.");
+                }
+
+                println!("cargo:rustc-link-search=native={}", pcre_pathbuf.as_path().display());
+            }
         }
     };
 }
