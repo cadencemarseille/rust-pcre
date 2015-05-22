@@ -16,12 +16,9 @@ Rust wrapper for libpcre.
 name = "pcre"
 
 [dependencies]
+enum-set = ">= 0.0.5"
 libc = "*"
 log = "*"
-
-[dependencies.enum-set]
-git = "https://github.com/contain-rs/enum-set.git"
-rev = "4c9745cb23534f09c1ff22755db745bfe8a9b07c"
 
 [dependencies.libpcre-sys]
 path = "libpcre-sys"
