@@ -132,10 +132,6 @@ pub struct MatchIterator<'a> {
 
     subject: &'a str,
 
-    /// The subject string as a `CString`. In MatchIterator's next() method, this is re-used
-    /// each time so that only one C-string copy of the subject string needs to be allocated.
-    subject_cstring: CString,
-
     offset: c_int,
 
     options: EnumSet<ExecOption>,
@@ -323,7 +319,7 @@ impl Pcre {
                     let extra: *mut PcreExtra = ptr::null_mut();
 
                     let mut capture_count: c_int = 0;
-                    detail::pcre_fullinfo(code, extra as *const PcreExtra, libpcre_sys::PCRE_INFO_CAPTURECOUNT, 
+                    detail::pcre_fullinfo(code, extra as *const PcreExtra, libpcre_sys::PCRE_INFO_CAPTURECOUNT,
                         &mut capture_count as *mut c_int as *mut c_void);
 
                     Ok(Pcre {
@@ -445,9 +441,14 @@ impl Pcre {
         let mut ovector = vec![0 as c_int; ovecsize as usize];
 
         unsafe {
-            // TODO Check memory allocations
-            let subject_cstring = CString::from_vec_unchecked(Vec::from(subject));
-            let rc = detail::pcre_exec(self.code, self.extra as *const PcreExtra, subject_cstring.as_ptr(), subject.len() as c_int, startoffset as c_int, options, ovector.as_mut_ptr(), ovecsize as c_int);
+            let rc = detail::pcre_exec(self.code,
+                                       self.extra as *const PcreExtra,
+                                       subject.as_ptr() as *const c_char,
+                                       subject.len() as c_int,
+                                       startoffset as c_int,
+                                       options,
+                                       ovector.as_mut_ptr(),
+                                       ovecsize as c_int);
             if rc >= 0 {
                 Some(Match {
                     subject: subject,
@@ -505,7 +506,6 @@ impl Pcre {
                 extra: self.extra as *const PcreExtra,
                 capture_count: self.capture_count_,
                 subject: subject,
-                subject_cstring: CString::from_vec_unchecked(Vec::from(subject)), // the subject string can contain NUL bytes
                 offset: 0,
                 options: options.clone(),
                 ovector: vec![0 as c_int; ovecsize as usize]
@@ -653,7 +653,6 @@ impl<'a> Clone for MatchIterator<'a> {
                 extra: self.extra,
                 capture_count: self.capture_count,
                 subject: self.subject,
-                subject_cstring: self.subject_cstring.clone(),
                 offset: self.offset,
                 options: self.options.clone(),
                 ovector: self.ovector.clone()
@@ -682,7 +681,14 @@ impl<'a> Iterator for MatchIterator<'a> {
     #[inline]
     fn next(&mut self) -> Option<Match<'a>> {
         unsafe {
-            let rc = detail::pcre_exec(self.code, self.extra, self.subject_cstring.as_ptr(), self.subject.len() as c_int, self.offset, &self.options, self.ovector.as_mut_ptr(), self.ovector.len() as c_int);
+            let rc = detail::pcre_exec(self.code,
+                                       self.extra,
+                                       self.subject.as_ptr() as *const c_char,
+                                       self.subject.len() as c_int,
+                                       self.offset,
+                                       &self.options,
+                                       self.ovector.as_mut_ptr(),
+                                       self.ovector.len() as c_int);
             if rc >= 0 {
                 // Update the iterator state.
                 self.offset = self.ovector[1];
