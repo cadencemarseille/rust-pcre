@@ -12,17 +12,11 @@ extern crate pkg_config;
 extern crate tar;
 
 use bzip2::reader::{BzDecompressor};
-use std::collections::{BTreeSet};
 use std::env;
-use std::ffi::{OsString};
-use std::fs;
 use std::fs::{OpenOptions};
-use std::io;
 use std::io::{ErrorKind};
-use std::iter::{FromIterator};
-use std::path::{Path, PathBuf};
+use std::path::{Path};
 use std::process::{Command};
-use std::vec::{Vec};
 use tar::{Archive};
 
 const BUNDLED_PCRE_VERSION: &'static str = "8.37";
@@ -45,50 +39,8 @@ fn main() {
             let decompressor = BzDecompressor::new(pcre_tbz2_f);
 
             let mut archive = Archive::new(decompressor);
-            // Keep track of which directory paths have already been created.
-            let mut created_paths: BTreeSet<OsString> = BTreeSet::new();
-            for file in archive.files_mut().unwrap() {
-                let mut file = file.unwrap();
-                let filename = String::from(file.filename().unwrap());
-
-                let mut path_parts: Vec<&str> = filename.split('/').collect();
-                let filename = path_parts.pop().unwrap();
-                let parent_pathbuf = Path::new(&out_dir).join(PathBuf::from_iter(path_parts.iter()));
-                if !path_parts.is_empty() {
-                    if created_paths.insert(parent_pathbuf.as_os_str().to_os_string()) {
-                        if let Err(e) = fs::create_dir_all(&parent_pathbuf) {
-                            if e.kind() != ErrorKind::AlreadyExists {
-                                panic!("failed to create the {} directory and parents: {}", parent_pathbuf.as_path().display(), e);
-                            }
-                        }
-                    }
-                }
-
-                let out_pathbuf = parent_pathbuf.join(&filename);
-                if filename.is_empty() {
-                    if created_paths.insert(out_pathbuf.as_os_str().to_os_string()) {
-                        if let Err(e) = fs::create_dir(&out_pathbuf) {
-                            if e.kind() != ErrorKind::AlreadyExists {
-                                panic!("failed to create the {} directory: {}", out_pathbuf.as_path().display(), e);
-                            }
-                        }
-                    }
-                } else {
-                    let mut f = OpenOptions::new().write(true).create(true).open(&out_pathbuf).unwrap();
-                    if let Err(e) = io::copy(&mut file, &mut f) {
-                        panic!("failed to extract {} to {}: {}", filename, out_pathbuf.as_path().display(), e);
-                    }
-                }
-                if cfg!(unix) {
-                    // TODO Use `std::fs::Permissions` when `std::os::unix::fs::PermissionsExt` is stable.
-                    use std::ffi::{CString};
-                    use std::os::unix::ffi::{OsStringExt};
-                    let out_pathbuf_cstring = CString::new(out_pathbuf.as_os_str().to_os_string().into_vec()).unwrap();
-                    let mode = file.mode().unwrap();
-                    unsafe {
-                        libc::chmod(out_pathbuf_cstring.as_ptr(), mode as libc::mode_t);
-                    }
-                }
+            if !archive.unpack(&out_dir).is_ok() {
+                panic!("failed to extract the tarball");
             }
 
             let pcre_pathbuf = Path::new(&out_dir).join(format!("pcre-{}", BUNDLED_PCRE_VERSION));

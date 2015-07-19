@@ -1,6 +1,6 @@
 [package]
 name = "libpcre-sys"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["The rust-pcre authors"]
 license = "MIT/Apache-2.0"
 keywords = ["pcre"]
@@ -19,4 +19,4 @@ libc = "*"
 bzip2 = "*"
 libc = "*"
 pkg-config = "*"
-tar = ">= 0.2.12"
+tar = "*"
