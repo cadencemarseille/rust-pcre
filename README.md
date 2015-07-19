@@ -1,5 +1,5 @@
 # rust-pcre
-[Rust](https://github.com/rust-lang/rust) 1.0 wrapper for [libpcre](http://pcre.org/) 8.20+.
+[Rust](https://github.com/rust-lang/rust) 1.1+ wrapper for [libpcre](http://pcre.org/) 8.20+.
 
 [![Build Status](https://travis-ci.org/cadencemarseille/rust-pcre.png?branch=master)](https://travis-ci.org/cadencemarseille/rust-pcre)
 
