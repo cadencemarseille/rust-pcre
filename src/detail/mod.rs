@@ -97,8 +97,8 @@ pub unsafe fn pcre_study(code: *const ::detail::pcre, options: &EnumSet<::StudyO
     if !err.is_null() {
         let err_cstr = CStr::from_ptr(err);
         match String::from_utf8(Vec::from(err_cstr.to_bytes())) {
-            Err(_) => error!("pcre_study() failed"),
-            Ok(err_str) => error!("pcre_study() failed: {}", err_str)
+            Err(_) => panic!("pcre_study() failed"),
+            Ok(err_str) => panic!("pcre_study() failed: {}", err_str)
         }
         panic!("pcre_study");
     }

@@ -9,8 +9,6 @@
 extern crate enum_set;
 extern crate libc;
 extern crate libpcre_sys;
-#[macro_use]
-extern crate log;
 
 use enum_set::{CLike, EnumSet};
 use libc::{c_char, c_int, c_uchar, c_void};
