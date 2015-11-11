@@ -2,16 +2,11 @@ sudo: false
 language: rust
 rust:
   - stable
-env:
-  global:
-    - secure: T4uyJ+OrJlSFUZsDhMrX4+Byi/+SPkT8r7yX4nwaKywJtvfbrN43KH3dcDQRqh41xgs9lMVUBTyfeKuNv6AHF0XODIk3rKwfr9FU8XC5Wb1lz9lA1YbTDIkZIJrfetN8b/AY2W3Y35x6stlqQZciuqekSBv0MW5QLxNhb/fokDc=
-script:
-  - cargo test
-  - cargo doc
-after_script:
-  - # the doc directory needs to be in the root for rust-ci
-  - mv target/doc doc
-  - curl http://www.rust-ci.org/artifacts/put?t=$RUSTCI_TOKEN | sh
+  - beta
+  - nightly
+matrix:
+  allow_failures:
+    - rust: nightly
 notifications:
   email:
     - cadencemarseille@gmail.com
