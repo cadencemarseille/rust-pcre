@@ -7,7 +7,6 @@
 // except according to those terms.
 
 extern crate bzip2;
-extern crate libc;
 extern crate pkg_config;
 extern crate tar;
 

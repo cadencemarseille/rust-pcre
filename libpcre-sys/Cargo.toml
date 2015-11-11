@@ -1,6 +1,6 @@
 [package]
 name = "libpcre-sys"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["The rust-pcre authors"]
 license = "MIT/Apache-2.0"
 keywords = ["pcre"]
@@ -13,10 +13,10 @@ description = "Native bindings to libpcre"
 name = "libpcre_sys"
 
 [dependencies]
-libc = "*"
+libc = "0.2"
 
 [build-dependencies]
-bzip2 = "*"
-libc = "*"
-pkg-config = "*"
-tar = "*"
+# bzip2 0.2.3 depends on libc ^0.1 whereas tar 0.3.2 depends on libc ^0.2. Use tar 0.3.1, which depends on libc ^0.1.
+bzip2 = "= 0.2.3"
+pkg-config = "0.3"
+tar = "= 0.3.1"
