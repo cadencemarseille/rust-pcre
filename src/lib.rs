@@ -627,11 +627,17 @@ impl Drop for Pcre {
 
 impl<'a> Match<'a> {
     /// Returns the start index within the subject string of capture group `n`.
+    ///
+    /// If the capture group is present in the pattern but wasn't captured then it's start will be `usize::max_value()`.
+    /// Happens with the optional groups, `/(optional)?/`.
     pub fn group_start(&self, n: usize) -> usize {
         self.partial_ovector[(n * 2) as usize] as usize
     }
 
     /// Returns the end index within the subject string of capture group `n`.
+    ///
+    /// If the capture group is present in the pattern but wasn't captured then it's end will be `usize::max_value()`.
+    /// Happens with the optional groups, `/(optional)?/`.
     pub fn group_end(&self, n: usize) -> usize {
         self.partial_ovector[(n * 2 + 1) as usize] as usize
     }
