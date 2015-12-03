@@ -18,7 +18,7 @@ use std::path::{Path};
 use std::process::{Command};
 use tar::{Archive};
 
-const BUNDLED_PCRE_VERSION: &'static str = "8.37";
+const BUNDLED_PCRE_VERSION: &'static str = "8.38";
 
 fn main() {
     match pkg_config::Config::new().atleast_version("8.20").find("libpcre") {

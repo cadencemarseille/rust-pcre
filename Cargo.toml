@@ -21,7 +21,7 @@ libc = "0.2"
 
 [dependencies.libpcre-sys]
 path = "libpcre-sys"
-version = "0.2.0"
+version = "0.2.1"
 
 [dev-dependencies]
 getopts = "0.2"
