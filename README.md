@@ -42,7 +42,7 @@ On Ubuntu 12.10 'Quantal Quetzal' and newer, install the `libpcre3-dev` package:
 ## Usage
 The basic use of the library involves compiling a pattern regular expression:
 
-    let re = match Pcre::compile(pattern) {
+    let mut re = match Pcre::compile(pattern) {
         Err(err) => {
             // compilation failed
             return;
@@ -54,7 +54,7 @@ You can also pass options:
 
     let mut compile_options: EnumSet<CompileOption> = EnumSet::new();
     compile_options.insert(CompileOption::Caseless);
-    let re = Pcre::compile_with_options(pattern, &compile_options).unwrap();
+    let mut re = Pcre::compile_with_options(pattern, &compile_options).unwrap();
 
 To test against a subject string, use one of the exec(), exec_from(), or exec_from_with_options() methods. For example:
 

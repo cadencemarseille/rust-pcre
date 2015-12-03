@@ -31,7 +31,7 @@ fn test_compile_capture_count() {
 
 #[test]
 fn test_exec_basic() {
-    let re = Pcre::compile("^...$").unwrap();
+    let mut re = Pcre::compile("^...$").unwrap();
     assert_eq!(re.capture_count(), 0);
     let m = re.exec("abc").unwrap();
     assert_eq!(m.group(0), "abc");
@@ -39,21 +39,21 @@ fn test_exec_basic() {
 
 #[test]
 fn test_exec_no_match() {
-    let re = Pcre::compile("abc").unwrap();
+    let mut re = Pcre::compile("abc").unwrap();
     assert!(re.exec("def").is_none());
 }
 
 #[test]
 fn test_exec_nul_byte() {
     // Nul bytes *are* allowed in subject strings, however.
-    let re = Pcre::compile("abc\\0def").unwrap();
+    let mut re = Pcre::compile("abc\\0def").unwrap();
     let m = re.exec("abc\0def").unwrap();
     assert_eq!(m.group(0), "abc\0def");
 }
 
 #[test]
 fn test_exec_from_basic() {
-    let re = Pcre::compile("abc").unwrap();
+    let mut re = Pcre::compile("abc").unwrap();
     let subject = "abcabc";
     let m1 = re.exec_from(subject, 1).unwrap();
     assert_eq!(m1.group_start(0), 3);
@@ -79,12 +79,8 @@ fn test_study_basic() {
 #[test]
 fn test_matches_basic() {
     let subject = "\0abc1111abcabc___ababc+a";
-    let mut it = {
-        let re = Pcre::compile("abc").unwrap();
-        re.matches(subject)
-
-        // The MatchIterator should retain a reference to the `pcre`.
-    };
+    let mut re = Pcre::compile("abc").unwrap();
+    let mut it = re.matches(subject);
 
     let mut opt_m = it.next();
     assert!(opt_m.is_some());

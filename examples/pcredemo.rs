@@ -104,7 +104,7 @@ fn main() {
 
     let mut compile_options: EnumSet<CompileOption> = EnumSet::new();
     compile_options.insert(CompileOption::DupNames);
-    let re = match Pcre::compile_with_options(&pattern, &compile_options) {
+    let mut re = match Pcre::compile_with_options(&pattern, &compile_options) {
         Err(err) => {
             writeln!(stderr(), "Error: The pattern could not be compiled: {}", err).unwrap();
             //env::set_exit_status(1);

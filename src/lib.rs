@@ -14,6 +14,7 @@ use enum_set::{CLike, EnumSet};
 use libc::{c_char, c_int, c_uchar, c_void};
 use std::collections::{BTreeMap};
 use std::ffi::{CStr, CString};
+use std::marker::{PhantomData};
 use std::option::{Option};
 use std::ptr;
 use std::result::{Result};
@@ -120,7 +121,7 @@ pub struct Match<'a> {
 }
 
 /// Iterator type for iterating matches within a subject string.
-pub struct MatchIterator<'a> {
+pub struct MatchIterator<'a, 'p> {
 
     code: *const detail::pcre,
 
@@ -134,7 +135,9 @@ pub struct MatchIterator<'a> {
 
     options: EnumSet<ExecOption>,
 
-    ovector: Vec<c_int>
+    ovector: Vec<c_int>,
+
+    _marker: PhantomData<&'p mut Pcre>
 
 }
 
@@ -388,7 +391,7 @@ impl Pcre {
     /// If a regular expression will be used often, it might be worth studying it to possibly
     /// speed up matching. See the [study()](#method.study) method.
     #[inline]
-    pub fn exec<'a>(&self, subject: &'a str) -> Option<Match<'a>> {
+    pub fn exec<'a, 'p>(&'p mut self, subject: &'a str) -> Option<Match<'a>> {
         self.exec_from(subject, 0)
     }
 
@@ -409,7 +412,7 @@ impl Pcre {
     /// If a regular expression will be used often, it might be worth studying it to possibly
     /// speed up matching. See the [study()](#method.study) method.
     #[inline]
-    pub fn exec_from<'a>(&self, subject: &'a str, startoffset: usize) -> Option<Match<'a>> {
+    pub fn exec_from<'a, 'p>(&'p mut self, subject: &'a str, startoffset: usize) -> Option<Match<'a>> {
         let no_options: EnumSet<ExecOption> = EnumSet::new();
         self.exec_from_with_options(subject, startoffset, &no_options)
     }
@@ -434,7 +437,7 @@ impl Pcre {
     /// If a regular expression will be used often, it might be worth studying it to possibly
     /// speed up matching. See the [study()](#method.study) method.
     #[inline]
-    pub fn exec_from_with_options<'a>(&self, subject: &'a str, startoffset: usize, options: &EnumSet<ExecOption>) -> Option<Match<'a>> {
+    pub fn exec_from_with_options<'a, 'p>(&'p mut self, subject: &'a str, startoffset: usize, options: &EnumSet<ExecOption>) -> Option<Match<'a>> {
         let ovecsize = (self.capture_count_ + 1) * 3;
         let mut ovector = vec![0 as c_int; ovecsize as usize];
 
@@ -494,7 +497,7 @@ impl Pcre {
     /// # Argument
     /// * `subject` - The subject string.
     #[inline]
-    pub fn matches<'a>(&self, subject: &'a str) -> MatchIterator<'a> {
+    pub fn matches<'a, 'p>(&'p mut self, subject: &'a str) -> MatchIterator<'a, 'p> {
         let no_options: EnumSet<ExecOption> = EnumSet::new();
         self.matches_with_options(subject, &no_options)
     }
@@ -507,7 +510,7 @@ impl Pcre {
     /// * `options` - Bitwise-OR'd matching options. See the libpcre manpages, `man 3 pcre_exec`,
     ///   for more information.
     #[inline]
-    pub fn matches_with_options<'a>(&self, subject: &'a str, options: &EnumSet<ExecOption>) -> MatchIterator<'a> {
+    pub fn matches_with_options<'a, 'p>(&'p mut self, subject: &'a str, options: &EnumSet<ExecOption>) -> MatchIterator<'a, 'p> {
         unsafe {
             let ovecsize = (self.capture_count_ + 1) * 3;
             MatchIterator {
@@ -517,7 +520,8 @@ impl Pcre {
                 subject: subject,
                 offset: 0,
                 options: options.clone(),
-                ovector: vec![0 as c_int; ovecsize as usize]
+                ovector: vec![0 as c_int; ovecsize as usize],
+                _marker: PhantomData
             }
         }
     }
@@ -653,24 +657,7 @@ impl<'a> Match<'a> {
     }
 }
 
-impl<'a> Clone for MatchIterator<'a> {
-    #[inline]
-    fn clone(&self) -> MatchIterator<'a> {
-        unsafe {
-            MatchIterator {
-                code: { detail::pcre_refcount(self.code as *mut detail::pcre, 1); self.code },
-                extra: self.extra,
-                capture_count: self.capture_count,
-                subject: self.subject,
-                offset: self.offset,
-                options: self.options.clone(),
-                ovector: self.ovector.clone()
-            }
-        }
-    }
-}
-
-impl<'a> Drop for MatchIterator<'a> {
+impl<'a, 'p> Drop for MatchIterator<'a, 'p> {
     fn drop(&mut self) {
         unsafe {
             if detail::pcre_refcount(self.code as *mut detail::pcre, -1) == 0 {
@@ -683,7 +670,7 @@ impl<'a> Drop for MatchIterator<'a> {
     }
 }
 
-impl<'a> Iterator for MatchIterator<'a> {
+impl<'a, 'p> Iterator for MatchIterator<'a, 'p> {
     type Item = Match<'a>;
 
     /// Gets the next match.
