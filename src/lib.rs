@@ -467,12 +467,23 @@ impl Pcre {
     /// or was unsuccessful.
     #[inline]
     pub fn mark(&self) -> Option<String> {
+        self.mark_bytes().map (|bytes| String::from_utf8(Vec::from(bytes)).unwrap())
+    }
+
+    /// Returns the mark name from PCRE if set.
+    ///
+    /// # Return value
+    /// `Some(&[u8])` if PCRE returned a value for the mark.
+    /// `None` if either there was no mark set or [enable_mark()](#method.enable_mark) was not called,
+    /// or was unsuccessful.
+    #[inline]
+    pub fn mark_bytes(&self) -> Option<&[u8]> {
         unsafe {
             if self.mark_.is_null() {
                 None
             } else {
                 let mark_cstr = CStr::from_ptr(self.mark_ as *const c_char);
-                Some(String::from_utf8(Vec::from(mark_cstr.to_bytes())).unwrap())
+                Some(mark_cstr.to_bytes())
             }
         }
     }
