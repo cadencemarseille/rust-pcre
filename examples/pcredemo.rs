@@ -22,16 +22,12 @@ use std::string::{String};
 use std::vec::{Vec};
 
 fn print_usage(program: &str, opts: &Options) {
-    drop(opts);
-    println!("Usage: {} [options] pattern subject", program);
-    println!("Options:");
-    println!("    -g                  Find all matches");
-    println!("    -h, --help          Print usage and exit");
-    println!("    --version           Print version information and exit");
+    let brief = format!("Usage: {} [options] pattern subject", program);
+    print!("{}", opts.usage(&brief));
 }
 
 fn print_version_info() {
-    println!("rust-pcre 0.1 compiled against libpcre {}", pcre_version());
+    println!("rust-pcre 0.2.1 compiled against libpcre {}", pcre_version());
 }
 
 fn print_match(m: &Match, name_table: &BTreeMap<String, Vec<usize>>) {
