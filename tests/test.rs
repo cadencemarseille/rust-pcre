@@ -169,3 +169,15 @@ fn test_extra_mark() {
     // and the marked value should be B
     assert_eq!(re.mark().unwrap(), "B");
 }
+
+#[test]
+fn test_optional_capture() {
+    let mut re = Pcre::compile("(foo)?bar").unwrap();
+    let subject = "bar";
+    let m1 = re.exec(subject).unwrap();
+    assert!(m1.group_start(0) == 0 && m1.group_end(0) == 3 && m1.group_len(0) == 3);  // bar
+    assert_eq!(m1.group_len(1), 0);
+    // That might come out as a surprise.
+    assert_eq!(m1.group_start(1), usize::max_value());  // c_int -1
+    assert_eq!(m1.group_end(1), usize::max_value());  // c_int -1
+}
