@@ -650,7 +650,7 @@ impl<'a> Match<'a> {
 
     /// Returns the substring for capture group `n` as a slice.
     #[inline]
-    pub fn group(&'a self, n: usize) -> &'a str {
+    pub fn group(&self, n: usize) -> &'a str {
         let group_offsets = &self.partial_ovector[((n * 2) as usize)..];
         let start = group_offsets[0];
         let end = group_offsets[1];
