@@ -92,7 +92,6 @@ pub struct CompilationError {
 }
 
 /// Wrapper for libpcre's `pcre` object (representing a compiled regular expression).
-#[allow(raw_pointer_derive)]
 #[derive(Debug)]
 pub struct Pcre {
 
