@@ -16,7 +16,6 @@ name = "libpcre_sys"
 libc = "0.2"
 
 [build-dependencies]
-# bzip2 0.2.3 depends on libc ^0.1 whereas tar 0.3.2 depends on libc ^0.2. Use tar 0.3.1, which depends on libc ^0.1.
-bzip2 = "= 0.2.3"
+bzip2 = "0.2.3"
 pkg-config = "0.3"
-tar = "= 0.3.1"
+tar = "0.3.2"
