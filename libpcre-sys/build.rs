@@ -10,7 +10,7 @@ extern crate bzip2;
 extern crate pkg_config;
 extern crate tar;
 
-use bzip2::reader::{BzDecompressor};
+use bzip2::read::{BzDecoder};
 use std::env;
 use std::fs::{OpenOptions};
 use std::io::{ErrorKind};
@@ -32,7 +32,7 @@ fn main() {
 
     let pcre_tbz2_pathbuf = ext_pathbuf.join(format!("pcre-{}.tar.bz2", BUNDLED_PCRE_VERSION));
     let pcre_tbz2_f = OpenOptions::new().read(true).open(pcre_tbz2_pathbuf).unwrap();
-    let decompressor = BzDecompressor::new(pcre_tbz2_f);
+    let decompressor = BzDecoder::new(pcre_tbz2_f);
 
     let mut archive = Archive::new(decompressor);
     if !archive.unpack(&out_dir).is_ok() {
