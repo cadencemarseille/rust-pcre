@@ -27,7 +27,7 @@ fn print_usage(program: &str, opts: &Options) {
 }
 
 fn print_version_info() {
-    println!("rust-pcre 0.2.1 compiled against libpcre {}", pcre_version());
+    println!("rust-pcre 0.2.3 compiled against libpcre {}", pcre_version());
 }
 
 fn print_match(m: &Match, name_table: &BTreeMap<String, Vec<usize>>) {
